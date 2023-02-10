@@ -40,7 +40,7 @@ class ButtonsManager:
 
         return additional_buttons
 
-    def build_get_books_read(self, message):
+    def build_get_books_read(self, response):
         main_buttons = dict(cm.select_reading_books())
 
         buttons = {
@@ -48,11 +48,11 @@ class ButtonsManager:
             'footer': [10024, 10026],
         }
 
-        reply_markup = self._build_menu(buttons, message, size=self.menu_el_size)
+        reply_markup = self._build_menu(buttons, response, size=self.menu_el_size)
 
         return reply_markup
 
-    def build_start_menu(self, message):
+    def build_start_menu(self, response):
 
         buttons = {
             'header_admin': [10008],
@@ -60,106 +60,106 @@ class ButtonsManager:
             'main_admin': [10023]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def build_common_stats(self, message):
+    def build_common_stats(self, response):
 
         buttons = {
             'main': [10010, 10011],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def build_stats_by_category(self, message):
+    def build_stats_by_category(self, response):
 
         buttons = {
             'main': [10012, 10013, 10014],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def build_stats_by_language(self, message):
+    def build_stats_by_language(self, response):
 
         buttons = {
             'main': [10015, 10016],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def build_stats_by_category_and_lang(self, message):
+    def build_stats_by_category_and_lang(self, response):
 
         buttons = {
             'main': [10017],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
     # Управление книгами
-    def build_for_books_management(self, message):
+    def build_books_management(self, response):
 
         buttons = {
             'main': [10009, 10025],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
     # TOP BOOKS
-    def build_to_read(self, message):
+    def build_to_read(self, response):
 
         buttons = {
             'main': [10018],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def build_admin_panel(self, message):
+    def build_admin_panel(self, response):
 
         buttons = {
             'main': [10019],
             'footer': [10003]
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def build_confirm_adding(self, action, message):
+    def build_confirm_adding(self, action, response):
 
         buttons = {
             'main': [10020, 10021] if action == 'finished' else [10028, 10029],
         }
 
-        reply_markup = self._build_menu(buttons, message)
+        reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
 
-    def _build_menu(self, buttons, message, size=None) -> types.InlineKeyboardMarkup:
+    def _build_menu(self, buttons, response, size=None) -> types.InlineKeyboardMarkup:
         size = size or self.row_size
         buttons =  BUTTONS | buttons
         admin_buttons = {k.replace('_admin', ''): v for k, v in buttons.items() if k.endswith('admin')}
         buttons = {k: v for k, v in buttons.items() if not k.endswith('admin')}
 
-        is_admin = private_access.is_admin(message)
+        is_admin = private_access.is_admin(response)
 
         if is_admin:
             buttons = {k: v + admin_buttons[k] for k, v in buttons.items()}

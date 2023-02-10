@@ -13,11 +13,12 @@ NAV_BUTTON_LIST_2 = ['first2', 'prev2', 'choice2', 'next2', 'last2']
 
 
 class TelegramPagination:
-    def __init__(self, bt, db, cm, cl_2, pagin_id=0):
+    def __init__(self, bt, db, cm, cl_2, bot_cm, pagin_id=0):
         self.bt = bt
         self.db = db
         self.cm = cm
         self.cl_2 = cl_2
+        self.bot_cm = bot_cm
 
         self.handler = 'pagin'
         self.date = datetime.strftime(datetime.now().date(), '%d%m%Y')
@@ -290,10 +291,9 @@ class TelegramPagination:
         # Построить календарь
         reply_markup, step = self.cl_2.build()
 
-
         # Отправить календарь пользователю
         text = f'{trans[53]}'
-        await self.bt.get_edited_text(bot, call=call, text=text, reply_markup=reply_markup)
+        await self.bot_cm.edite_messaget(call, text, reply_markup)
 
     @staticmethod
     def _build_menu(buttons, row_size, nav_buttons=None, header_buttons=None, footer_buttons=None):

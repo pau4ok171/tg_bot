@@ -5,7 +5,7 @@ from datetime import date
 import math
 from telegram_bot_calendar.static import LSTEP_text
 
-TRANS_ID = [42, 43, 44, 45, 46, 21, 22, 26, 50, 51, 52]
+TRANS_ID = [42, 43, 44, 45, 46, 20, 21, 22, 26, 50, 51, 52]
 
 
 class OtherHandlers:
@@ -30,12 +30,9 @@ class OtherHandlers:
 
             result, key, step = self.cl_1.process(call.data)
             if not result and key:
-                await self.bt.get_edited_text(
-                    bot,
-                    call,
-                    f'{trans[42]} {LSTEP_text[lang][step]}',
-                    reply_markup=key
-                )
+                text = f'{trans[42]} {LSTEP_text[lang][step]}'
+                reply_markup = key
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif result:
                 # Открыть состояние id книги
@@ -58,8 +55,8 @@ class OtherHandlers:
                        f'<b>{trans[44]}:</b> {read_date}\n' \
                        f'<b>{trans[45]}</b>'
 
-                reply_markup = self.bt.buttons_for_confirm_adding('finished')
-                await self.bt.get_edited_text(bot, call, text, reply_markup=reply_markup)
+                reply_markup = self.bt.build_confirm_adding('finished')
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
         @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=2))
         async def calender_for_started(call):
@@ -69,7 +66,9 @@ class OtherHandlers:
 
             result, key, step = self.cl_2.process(call.data)
             if not result and key:
-                await self.bt.get_edited_text(bot, call, f'{trans[42]} {LSTEP_text[lang][step]}', reply_markup=key)
+                text = f'{trans[42]} {LSTEP_text[lang][step]}'
+                reply_markup = key
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif result:
                 # Открыть состояние id книги
@@ -92,8 +91,8 @@ class OtherHandlers:
                        f'<b>{trans[52]}:</b> {start_date}\n' \
                        f'<b>{trans[45]}</b>'
 
-                reply_markup = self.bt.buttons_for_confirm_adding('started')
-                await self.bt.get_edited_text(bot, call, text, reply_markup=reply_markup)
+                reply_markup = self.bt.build_confirm_adding('started')
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
         @bot.callback_query_handler(func=self.pg.func())
         @private_access(bot)
@@ -109,25 +108,33 @@ class OtherHandlers:
 
             if call.data == 'calender_finished_cancel':
                 await bot.delete_state(call.message.from_user.id, call.message.id)
-                reply_markup = self.bt.buttons_for_get_books_read()
+
                 text = f'{trans[22]}'
-                await self.bt.get_edited_text(bot, call, text, reply_markup=reply_markup)
+                reply_markup = self.bt.build_get_books_read(call)
+
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data == 'calender_started_cancel':
                 await bot.delete_state(call.message.from_user.id, call.message.id)
                 last_page = math.ceil(int(self.cm.select_books_nb_non_read()) / 10)
-                reply_markup = self.pg.build_reply_markup(level=1)
+
                 text = f'{trans[50]} 1 {trans[51]} {last_page}'
-                await self.bt.get_edited_text(bot, call, text, reply_markup)
+                reply_markup = self.pg.build_reply_markup(level=1)
+
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data == 'calender_home':
                 await bot.delete_state(call.message.from_user.id, call.message.id)
-                reply_markup = self.bt.buttons_for_start_menu(call)
-                await self.bt.get_edited_text(bot, call, reply_markup=reply_markup)
+
+                text = f'{trans[20]}'
+                reply_markup = self.bt.build_start_menu(call)
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith(('other&home_as_back&', 'other&home_as_home&')):
-                reply_markup = self.bt.buttons_for_start_menu(call)
-                await self.bt.get_edited_text(bot, call, reply_markup=reply_markup)
+                text = f'{trans[20]}'
+                reply_markup = self.bt.build_start_menu(call)
+
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith('other&confirm_get_finished_book'):
                 # Открыть менеджер состояния и извлечь данные в кортеж
@@ -145,13 +152,14 @@ class OtherHandlers:
                 await bot.delete_message(call.from_user.id, call.message.id)
 
                 # Создать новую клавиатуру
-                reply_markup = self.bt.buttons_for_start_menu(call)
                 text = f'{trans[26]}'
+                reply_markup = self.bt.build_start_menu(call)
+
                 # Отправить клавиатуру пользователю
-                await bot.send_message(call.from_user.id, text, reply_markup=reply_markup)
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
                 # Отправить сообщение об успешном завершении операции
-                await bot.send_message(call.message.chat.id, f'{trans[46]}!')
+                await self.bot_cm.send_message(call, f'{trans[46]}!')
 
             elif call.data.startswith('other&decline_get_finished_book'):
                 # Удалить состояние
@@ -162,11 +170,11 @@ class OtherHandlers:
                 # Добавить дополнительные кнопки в календарь
                 self.cl_1.additional_buttons = self.bt.additional_buttons_for_get_read('finished')
                 # Построить календарь
-                reply_markup, step = self.cl_1.build()
+                text = f'{trans[21]}'
+                reply_markup, step = self.cl_1.build(call)
 
                 # Отправить календарь пользователю
-                text = f'{trans[21]}'
-                await self.bt.get_edited_text(bot, call=call, text=text, reply_markup=reply_markup)
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith('other&decline_get_started_book&'):
                 # Удалить состояние
@@ -176,11 +184,13 @@ class OtherHandlers:
 
                 # Добавить дополнительные кнопки в календарь
                 self.cl_1.additional_buttons = self.bt.additional_buttons_for_get_read('started')
+
                 # Построить календарь
-                reply_markup, step = self.cl_2.build()
-                # Отправить календарь пользователю
                 text = f'{trans[21]}'
-                await self.bt.get_edited_text(bot, call=call, text=text, reply_markup=reply_markup)
+                reply_markup, step = self.cl_2.build()
+
+                # Отправить календарь пользователю
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith('other&confirm_get_started_book'):
                 # Открыть менеджер состояния и извлечь данные в кортеж
@@ -198,10 +208,11 @@ class OtherHandlers:
                 await bot.delete_message(call.from_user.id, call.message.id)
 
                 # Создать новую клавиатуру
-                reply_markup = self.bt.buttons_for_start_menu(call)
                 text = f'{trans[26]}'
+                reply_markup = self.bt.build_start_menu(call)
+
                 # Отправить клавиатуру пользователю
-                await bot.send_message(call.from_user.id, text, reply_markup=reply_markup)
+                await self.bot_cm.send_message(call, text, reply_markup)
 
                 # Отправить сообщение об успешном завершении операции
-                await bot.send_message(call.message.chat.id, f'{trans[46]}!')
+                await self.bot_cm.send_message(call, f'{trans[46]}!')

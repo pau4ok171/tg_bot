@@ -2,6 +2,7 @@ from functools import wraps
 import config
 from data_logging import LoggingManager
 
+
 ADMINS = config.admins
 REGISTERED = config.registered
 ALLOWED_ID = config.allowed_id
@@ -11,7 +12,6 @@ lg = LoggingManager()
 
 def recognize_user(user_id):
     return user_id in ALLOWED_ID
-
 
 def recognize_admin(user_id):
     return user_id in ADMINS
@@ -23,7 +23,6 @@ def is_admin(message):
 
 def private_access(bot):
     def deco_restrict(func):
-
         @wraps(func)
         async def func_restrict(message, *args, **kwargs):
             user_id = message.from_user.id
@@ -39,7 +38,6 @@ def private_access(bot):
         return func_restrict
 
     return deco_restrict
-
 
 def private_admin_access(bot):
     def deco_restrict(func):

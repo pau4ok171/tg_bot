@@ -67,7 +67,7 @@ class TelebotManager:
 
         self.bot_cm = TelebotCommandsManager(self.bot)
         self.bt = ButtonsManager(self.bot_cm)
-        self.pg = TelegramPagination( self.bt, db, cm, cl_2)
+        self.pg = TelegramPagination( self.bt, db, cm, cl_2, self.bot_cm)
         self.admin = admin.AdminHandlers(cm,  self.bt, lg, cl_1, self.pg, self.bot_cm)
         self.client = client.ClientHandlers(cm, self.bt, lg, cl_1, logger, self.pg, self.bot_cm)
         self.other = other.OtherHandlers(cm,  self.bt, lg, cl_1, cl_2, self.pg, self.bot_cm)

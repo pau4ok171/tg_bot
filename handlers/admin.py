@@ -2,7 +2,7 @@ from private_access import private_admin_access
 from handlers.states import States
 import math
 
-TRANS_ID = [21, 22, 23, 48, 50, 51]
+TRANS_ID = [20, 21, 22, 23, 48, 50, 51]
 
 
 class AdminHandlers:
@@ -45,7 +45,10 @@ class AdminHandlers:
                 self.cl_1.locale = call.from_user.language_code
 
                 # Сохранить состояние id книги в память
-                async with bot.retrieve_data(call.message.from_user.id, call.message.chat.id) as data:
+                async with bot.retrieve_data(
+                        call.message.from_user.id,
+                        call.message.chat.id
+                ) as data:
                     data['book_id'] = book_id
                     self.cl_1.min_date = self.cm.select_started_by_id(data['book_id'])
 
@@ -56,24 +59,25 @@ class AdminHandlers:
 
                 # Отправить календарь пользователю
                 text = f'{trans[21]}'
-                await self.bot_cm.edit_message(call=call, text=text, reply_markup=reply_markup)
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith('admin&book_management'):
                 reply_markup = self.bt.build_books_management(call)
                 text = f'{trans[48]}'
-                await self.bot_cm.edit_message(call=call, text=text, reply_markup=reply_markup)
+
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith('admin&mark_read'):
                 # Вывести список начатых книг кнопкой
-                reply_markup = self.bt.build_get_books_read()
+                reply_markup = self.bt.build_get_books_read(call)
                 text = f'{trans[22]}'
-                await self.bot_cm.edit_message(call=call, text=text, reply_markup=reply_markup)
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
                 """-----------------------------АДМИН__ПАНЕЛЬ-----------------------------"""
             elif call.data.startswith('admin&panel'):
                 reply_markup = self.bt.build_admin_panel(call)
                 text = f'{trans[23]}'
-                await self.bot_cm.edit_message(call=call, text=text, reply_markup=reply_markup)
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             elif call.data.startswith('admin&unique_users'):
                 # Сформировать ответ пользователю
@@ -85,17 +89,19 @@ class AdminHandlers:
                 # Создать новую клавиатуру
                 reply_markup = self.bt.build_admin_panel(call)
                 text = f'{trans[23]}'
+
                 # Отправить клавиатуру пользователю
-                await bot.send_message(call.from_user.id, text, reply_markup=reply_markup)
+                await self.bot_cm.send_message(call, text, reply_markup)
 
                 """-------------------------------ПАГИНАЦИЯ-------------------------------"""
             elif call.data.startswith('admin&mark_started&'):
 
-                reply_markup = self.pg.build_reply_markup(level=1)
                 last_page = math.ceil(int(self.cm.select_books_nb_non_read()) / 10)
-                text = f'{trans[50]} 1 {trans[51]} {last_page}'
-                await self.bot_cm.edit_message(call=call, text=text, reply_markup=reply_markup)
 
+                text = f'{trans[50]} 1 {trans[51]} {last_page}'
+                reply_markup = self.pg.build_reply_markup(level=1)
+
+                await self.bot_cm.edit_message(call, text, reply_markup)
 
             if answer:
-                await bot.send_message(call.message.chat.id, answer)
+                await self.bot_cm.send_message(call, answer)
