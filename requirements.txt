@@ -1,0 +1,5 @@
+pandas
+coloredlogs
+pyTelegramBotAPI
+python-decouple
+mysql-connector-python
