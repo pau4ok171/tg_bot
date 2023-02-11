@@ -293,7 +293,7 @@ class TelegramPagination:
 
         # Отправить календарь пользователю
         text = f'{trans[53]}'
-        await self.bot_cm.edite_messaget(call, text, reply_markup)
+        await self.bot_cm.edit_message(call, text, reply_markup)
 
     @staticmethod
     def _build_menu(buttons, row_size, nav_buttons=None, header_buttons=None, footer_buttons=None):

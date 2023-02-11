@@ -16,8 +16,9 @@ from buttons import ButtonsManager
 from database import DatabaseManager
 from data_logging import LoggingManager
 from handlers import admin, client, other
-from pagination import TelegramPagination
+from builders.pagination import TelegramPagination
 from tg_bot_commands import TelebotCommandsManager
+from keyboards import menu
 
 # Telebot token
 TG_TOKEN = tg_token
@@ -33,7 +34,7 @@ coloredlogs.install(level='INFO', logger=logger)
 
 # Classes initialisation
 cm = CommandManager()
-lg = LoggingManager()
+lg = LoggingManager(logger)
 db = DatabaseManager()
 
 # Календарь для законченных
@@ -67,11 +68,11 @@ class TelebotManager:
 
         self.bot_cm = TelebotCommandsManager(self.bot)
         self.bt = ButtonsManager(self.bot_cm)
+        self.menu = menu.MenuManager(self.bot, self.bt, db, cm, self.bot_cm)
         self.pg = TelegramPagination( self.bt, db, cm, cl_2, self.bot_cm)
         self.admin = admin.AdminHandlers(cm,  self.bt, lg, cl_1, self.pg, self.bot_cm)
-        self.client = client.ClientHandlers(cm, self.bt, lg, cl_1, logger, self.pg, self.bot_cm)
+        self.client = client.ClientHandlers(cm, self.bt, lg, self.bot_cm, self.menu)
         self.other = other.OtherHandlers(cm,  self.bt, lg, cl_1, cl_2, self.pg, self.bot_cm)
-
 
     def main(self):
 

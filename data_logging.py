@@ -1,4 +1,5 @@
 import config
+import inspect
 from command import CommandManager
 
 ADMINS = config.admins
@@ -8,14 +9,21 @@ ALLOWED_ID = config.allowed_id
 cm = CommandManager()
 
 class LoggingManager:
-    def __init__(self):
-        pass
+    def __init__(self, logger=None):
+        self.logger = logger
 
     def log_message(self, message):
         data = self._build_dict(message)
         values = data.values()
         cm.add_log_message(values)
 
+    def print_log_info(self, message):
+        self.logger.info(
+            f'{inspect.getframeinfo(inspect.currentframe()).function} | '
+            f'id: {message.chat.id} | '
+            f'username: {message.chat.username} | '
+            f'access_level: {self._get_access_level(message.chat.id)}'
+        )
 
     def _build_dict(self, message):
         from_user = message.from_user

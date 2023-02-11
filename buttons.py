@@ -154,6 +154,7 @@ class ButtonsManager:
         return reply_markup
 
     def _build_menu(self, buttons, response, size=None) -> types.InlineKeyboardMarkup:
+        self.lang = response.from_user.language_code
         size = size or self.row_size
         buttons =  BUTTONS | buttons
         admin_buttons = {k.replace('_admin', ''): v for k, v in buttons.items() if k.endswith('admin')}

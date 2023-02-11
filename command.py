@@ -33,7 +33,7 @@ class CommandManager:
     def select_count_read_books(self):
         select = ('COUNT(*) AS count',)
         where = {'YEAR(finished)': '> 1900'}
-        query = self._get_select_query(select=select, where=where)
+        query = self._build_select_query(select=select, where=where)
         response = db.crud_data(query, resp_type='str')
         return response
 
@@ -42,13 +42,13 @@ class CommandManager:
         where = {'YEAR(finished)': '> 1900'}
         group_by = ('genre',)
         order_by = {'count': 'DESC'}
-        query = self._get_select_query(select=select, where=where, group_by=group_by, order_by=order_by)
+        query = self._build_select_query(select=select, where=where, group_by=group_by, order_by=order_by)
         response = db.crud_data(query, resp_type='table')
         return response
 
     def select_books(self):
         select = ('COUNT(*) AS count',)
-        query = self._get_select_query(select=select)
+        query = self._build_select_query(select=select)
         response = db.crud_data(query, resp_type='str')
         return response
 
@@ -56,7 +56,7 @@ class CommandManager:
         select = ('genre', 'COUNT(*) AS count')
         group_by = ('genre',)
         order_by = {'count': 'DESC'}
-        query = self._get_select_query(select=select, group_by=group_by, order_by=order_by)
+        query = self._build_select_query(select=select, group_by=group_by, order_by=order_by)
         response = db.crud_data(query, resp_type='table')
         return response
 
@@ -70,7 +70,7 @@ class CommandManager:
         select = ('language', 'COUNT(*) AS count')
         group_by = ('language',)
         order_by = {'count': 'DESC'}
-        query = self._get_select_query(select=select, group_by=group_by, order_by=order_by)
+        query = self._build_select_query(select=select, group_by=group_by, order_by=order_by)
         response = db.crud_data(query, resp_type='table')
         return response
 
@@ -79,7 +79,7 @@ class CommandManager:
         where = {'YEAR(finished)': '> 1900'}
         group_by = ('language',)
         order_by = {'count': 'DESC'}
-        query = self._get_select_query(select=select, where=where, group_by=group_by, order_by=order_by)
+        query = self._build_select_query(select=select, where=where, group_by=group_by, order_by=order_by)
         response = db.crud_data(query, resp_type='table')
         return response
 
@@ -89,7 +89,7 @@ class CommandManager:
                   "COUNT(*) AS number")
         group_by = ('genre', 'language WITH ROLLUP')
         order_by = {'genre': 'ASC', 'number': 'DESC'}
-        query = self._get_select_query(select=select, group_by=group_by, order_by=order_by)
+        query = self._build_select_query(select=select, group_by=group_by, order_by=order_by)
         response = db.crud_data(query, resp_type='table')
         return response
 
@@ -102,7 +102,7 @@ class CommandManager:
     def select_reading_books(self):
         select = ('id', 'name')
         where = {'YEAR(started)': '> 1900', 'YEAR(finished)': '<= 1900'}
-        query = self._get_select_query(select=select, where=where)
+        query = self._build_select_query(select=select, where=where)
         response = db.crud_data(query, resp_type='list[tuple]')
         return response
 
@@ -111,7 +111,7 @@ class CommandManager:
         from_ = 'users'
         group_by = ('user_id', 'username')
         order_by = {'last_request': 'ASC'}
-        query = self._get_select_query(
+        query = self._build_select_query(
                 select=select,
                 from_=from_,
                 group_by=group_by,
@@ -123,7 +123,7 @@ class CommandManager:
     def select_started_by_id(self, book_id):
         select = ('started',)
         where = {'id': f'={book_id}'}
-        query = self._get_select_query(
+        query = self._build_select_query(
             select=select,
             where=where
         )
@@ -135,7 +135,7 @@ class CommandManager:
     def select_book_name_by_id(self, book_id):
         select = ('name',)
         where = {'id': f'={book_id}'}
-        query = self._get_select_query(
+        query = self._build_select_query(
             select=select,
             where=where
         )
@@ -147,7 +147,7 @@ class CommandManager:
         from_ = 'buttons'
         join = {'translations AS trans': 'ON trans.id = translation_id'}
         where = {'buttons.id': '=%s'}
-        query = self._get_select_query(
+        query = self._build_select_query(
             select=select,
             from_=from_,
             join=join,
@@ -166,7 +166,7 @@ class CommandManager:
         from_ = 'translations'
         for tr_id in trans_id:
             where = {'id': f'={tr_id}'}
-            query = self._get_select_query(
+            query = self._build_select_query(
                 select=select,
                 from_=from_,
                 where=where
@@ -175,6 +175,26 @@ class CommandManager:
             trans[tr_id] = response
 
         return trans
+
+    def select_translations(self, lang) -> dict:
+        # Проверить доступен ли язык
+        lang = lang if lang in AVAILABLE_LANGUAGUES else 'ru'
+        lang = f'lang_{lang}'
+        trans = {}
+
+        # Построить query
+        select = ('id', lang)
+        from_ = 'translations'
+
+        query = self._build_select_query(
+            select=select,
+            from_=from_
+        )
+        response = db.crud_data(query, resp_type='rows')
+        response = {k: v for k, v in response}
+
+        return response
+
 
     @staticmethod
     def select_books_for_pagination(values):
@@ -206,7 +226,7 @@ class CommandManager:
             return prepared_df
 
     @staticmethod
-    def _get_select_query(
+    def _build_select_query(
              select: tuple = ('*',),
              from_: str = TABLE_NAME,
              join: dict = None,
