@@ -1,3 +1,4 @@
+import schemas
 
 
 class Keyboard:
@@ -9,6 +10,10 @@ class Keyboard:
         self.bot_cm = bot_cm
         self.lang = 'ru'
         self.trans = None
+
+    @staticmethod
+    def _build_keyboard(text, reply_markup):
+        return schemas.Keyboard(text=text, reply_markup=reply_markup)
 
     def set_user_lang(self, response):
         """

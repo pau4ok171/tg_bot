@@ -5,12 +5,13 @@ class ClientHandlers:
     """
     Класс с клиентскими обработчиками сообщений телебота.
     """
-    def __init__(self, cm, bt, lg, bot_cm, menu):
+    def __init__(self, cm, bt, lg, bot_cm, menu, cl_test):
         self.cm = cm
         self.bt = bt
         self.lg = lg
         self.bot_cm = bot_cm
         self.menu = menu
+        self.cl_test = cl_test
 
     def main(self, bot):
         @bot.message_handler(commands=['start'])
@@ -49,6 +50,7 @@ class ClientHandlers:
         async def text_message(message):
             # Задать язык пользователя
             self.menu.set_user_lang(message)
+            self.cl_test.set_user_lang(message)
 
             # Добавить запись о пользователе в бд
             self.lg.log_message(message)
@@ -56,6 +58,9 @@ class ClientHandlers:
             # Отправить пользователю правильную команду для начала общения с ботом
             text = self.menu.build_text_on_text_call()
             await self.bot_cm.send_message(message, text)
+
+            kb = self.cl_test.build()
+            await self.bot_cm.send_message(message, kb.text, kb.reply_markup)
 
 
         @bot.callback_query_handler(func=lambda call: call.data.startswith('client'))

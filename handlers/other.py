@@ -12,7 +12,7 @@ class OtherHandlers:
     """
     Класс с дополнительными обработчиками сообщений телебота.
     """
-    def __init__(self, cm, bt, lg, cl_1, cl_2, pg, bot_cm):
+    def __init__(self, cm, bt, lg, cl_1, cl_2, pg, bot_cm, cl_test):
         self.cm = cm
         self.bt = bt
         self.lg = lg
@@ -20,6 +20,7 @@ class OtherHandlers:
         self.cl_2 = cl_2
         self.pg = pg
         self.bot_cm = bot_cm
+        self.cl_test = cl_test
 
     def main(self, bot):
         @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=1))
@@ -55,7 +56,7 @@ class OtherHandlers:
                        f'<b>{trans[44]}:</b> {read_date}\n' \
                        f'<b>{trans[45]}</b>'
 
-                reply_markup = self.bt.build_confirm_adding('finished')
+                reply_markup = self.bt.build_confirm_adding('finished', call)
                 await self.bot_cm.edit_message(call, text, reply_markup)
 
         @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=2))
@@ -91,7 +92,7 @@ class OtherHandlers:
                        f'<b>{trans[52]}:</b> {start_date}\n' \
                        f'<b>{trans[45]}</b>'
 
-                reply_markup = self.bt.build_confirm_adding('started')
+                reply_markup = self.bt.build_confirm_adding('started', call)
                 await self.bot_cm.edit_message(call, text, reply_markup)
 
         @bot.callback_query_handler(func=self.pg.func())
@@ -99,6 +100,13 @@ class OtherHandlers:
         async def pagination(call):
             # Сформировать пагинацию и отправить пользователю
             await self.pg.process(bot, call)
+
+        @bot.callback_query_handler(func=self.cl_test.func())
+        @private_access(bot)
+        async def calendar_test(call):
+            print(call.data)
+            # Сформировать пагинацию и отправить пользователю
+            # await self.cl_test.process(bot, call)
 
         @bot.callback_query_handler(func=lambda call: True)
         @private_access(bot)

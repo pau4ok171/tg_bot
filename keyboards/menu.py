@@ -1,5 +1,4 @@
 from telebot import types
-import schemas
 import config
 from private_access import get_user_access_level
 
@@ -52,6 +51,5 @@ class MenuManager(Keyboard):
 
         return text
 
-    @staticmethod
-    def _build_keyboard(text, reply_markup):
-        return schemas.Keyboard(text=text, reply_markup=reply_markup)
+
+
