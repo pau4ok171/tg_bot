@@ -15,8 +15,8 @@ DAYS_OF_WEEK = {
 }
 
 STEP = {
-    'en': {'y': 'year', 'm': 'month', 'd': 'day'},
-    'ru': {'y': 'год', 'm': 'месяц', 'd': 'день'},
-    'fr': {'y': 'année', 'm': 'mois', 'd': 'jour'},
-    'es': {'y': 'año', 'm': 'mes', 'd': 'día'},
+    'en': {'year': 'year', 'month': 'month', 'day': 'day'},
+    'ru': {'year': 'год', 'month': 'месяц', 'day': 'день'},
+    'fr': {'year': 'année', 'month': 'mois', 'day': 'jour'},
+    'es': {'year': 'año', 'month': 'mes', 'day': 'día'},
 }

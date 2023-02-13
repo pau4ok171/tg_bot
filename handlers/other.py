@@ -105,8 +105,9 @@ class OtherHandlers:
         @private_access(bot)
         async def calendar_test(call):
             print(call.data)
-            # Сформировать пагинацию и отправить пользователю
-            # await self.cl_test.process(bot, call)
+            # Сформировать календарь и отправить пользователю
+            kb = self.cl_test.process(call)
+            await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
         @bot.callback_query_handler(func=lambda call: True)
         @private_access(bot)

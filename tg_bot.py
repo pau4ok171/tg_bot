@@ -51,7 +51,7 @@ cl_2 = DetailedTelegramCalendar(
     calendar_id=2,
     locale='ru',
     min_date=date.today() - timedelta(days=30),
-    max_date=date.today() + timedelta(days=30)
+    max_date=date.today() + timedelta(days=30),
 )
 
 
