@@ -59,9 +59,9 @@ class ClientHandlers:
             text = self.menu.build_text_on_text_call()
             await self.bot_cm.send_message(message, text)
 
-            kb = self.cl_test.build()
-            await self.bot_cm.send_message(message, kb.text, kb.reply_markup)
-
+            kb, chosen_date = self.cl_test.build()
+            if kb:
+                await self.bot_cm.send_message(message, kb.text, kb.reply_markup)
 
         @bot.callback_query_handler(func=lambda call: call.data.startswith('client'))
         @private_access(bot)

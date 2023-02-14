@@ -12,7 +12,7 @@ class OtherHandlers:
     """
     Класс с дополнительными обработчиками сообщений телебота.
     """
-    def __init__(self, cm, bt, lg, cl_1, cl_2, pg, bot_cm, cl_test):
+    def __init__(self, cm, bt, lg, cl_1, cl_2, pg, bot_cm, menu, cl_test):
         self.cm = cm
         self.bt = bt
         self.lg = lg
@@ -20,6 +20,7 @@ class OtherHandlers:
         self.cl_2 = cl_2
         self.pg = pg
         self.bot_cm = bot_cm
+        self.menu = menu
         self.cl_test = cl_test
 
     def main(self, bot):
@@ -104,10 +105,20 @@ class OtherHandlers:
         @bot.callback_query_handler(func=self.cl_test.func())
         @private_access(bot)
         async def calendar_test(call):
+            # Задать язык пользователя
+            self.menu.set_user_lang(call)
+            self.cl_test.set_user_lang(call)
             print(call.data)
             # Сформировать календарь и отправить пользователю
-            kb = self.cl_test.process(call)
-            await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+            kb, chosen_date = self.cl_test.process(call)
+            if kb:
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+            else:
+                kb = self.menu.build_start_menu_kb(call)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+                await self.bot_cm.send_message(call, f'Выбрана дата: {chosen_date}')
+
 
         @bot.callback_query_handler(func=lambda call: True)
         @private_access(bot)
@@ -115,7 +126,7 @@ class OtherHandlers:
             self.bt.lang = call.from_user.language_code
             trans = self.cm.select_translation_by_id(TRANS_ID, self.bt.lang)
 
-            if call.data == 'calender_finished_cancel':
+            if call.data.startswith('other&calendar_1_cancel'):
                 await bot.delete_state(call.message.from_user.id, call.message.id)
 
                 text = f'{trans[22]}'
@@ -123,7 +134,7 @@ class OtherHandlers:
 
                 await self.bot_cm.edit_message(call, text, reply_markup)
 
-            elif call.data == 'calender_started_cancel':
+            elif call.data == 'other&calendar_2_cancel':
                 await bot.delete_state(call.message.from_user.id, call.message.id)
                 last_page = math.ceil(int(self.cm.select_books_nb_non_read()) / 10)
 
@@ -132,7 +143,8 @@ class OtherHandlers:
 
                 await self.bot_cm.edit_message(call, text, reply_markup)
 
-            elif call.data == 'calender_home':
+            elif call.data.startswith('other&calendar_home'):
+
                 await bot.delete_state(call.message.from_user.id, call.message.id)
 
                 text = f'{trans[20]}'

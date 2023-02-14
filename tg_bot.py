@@ -71,13 +71,14 @@ class TelebotManager:
         self.bot_cm = TelebotCommandsManager(self.bot)
         self.bt = ButtonsManager(self.bot_cm)
 
-        self.cl_test = calendar_.Calendar(self.bot, self.bt, db, cm, self.bot_cm)
+
 
         self.menu = menu.MenuManager(self.bot, self.bt, db, cm, self.bot_cm)
+        self.cl_test = calendar_.Calendar(self.bot, self.bt, db, cm, self.bot_cm, self.menu, calendar_id=1)
         self.pg = TelegramPagination( self.bt, db, cm, cl_2, self.bot_cm)
         self.admin = admin.AdminHandlers(cm,  self.bt, lg, cl_1, self.pg, self.bot_cm)
         self.client = client.ClientHandlers(cm, self.bt, lg, self.bot_cm, self.menu, self.cl_test)
-        self.other = other.OtherHandlers(cm,  self.bt, lg, cl_1, cl_2, self.pg, self.bot_cm, self.cl_test)
+        self.other = other.OtherHandlers(cm,  self.bt, lg, cl_1, cl_2, self.pg, self.bot_cm, self.menu, self.cl_test)
 
     def main(self):
 
