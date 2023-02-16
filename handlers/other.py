@@ -113,7 +113,7 @@ class OtherHandlers:
             kb, chosen_date = self.cl_test.process(call)
             if kb:
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
-            else:
+            elif chosen_date:
                 kb = self.menu.build_start_menu_kb(call)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
