@@ -6,8 +6,6 @@ from telebot.asyncio_storage import StateMemoryStorage
 import logging
 import coloredlogs
 import asyncio
-from telegram_bot_calendar import DetailedTelegramCalendar
-from datetime import date,timedelta
 
 # My import
 from config import tg_token
@@ -18,8 +16,7 @@ from data_logging import LoggingManager
 from handlers import admin, client, other
 from builders.pagination import TelegramPagination
 from tg_bot_commands import TelebotCommandsManager
-from builders import calendar_
-from keyboards import menu
+from keyboards import menu, calendars, paginations
 
 # Telebot token
 TG_TOKEN = tg_token
@@ -38,22 +35,6 @@ cm = CommandManager()
 lg = LoggingManager(logger)
 db = DatabaseManager()
 
-# Календарь для законченных
-cl_1 = DetailedTelegramCalendar(
-    calendar_id=1,
-    locale='ru',
-    max_date=date.today(),
-    min_date=date.today() - timedelta(days=365)
-)
-
-# Календарь для начатых
-cl_2 = DetailedTelegramCalendar(
-    calendar_id=2,
-    locale='ru',
-    min_date=date.today() - timedelta(days=30),
-    max_date=date.today() + timedelta(days=30),
-)
-
 
 class TelebotManager:
     """
@@ -68,17 +49,18 @@ class TelebotManager:
         )
 
 
+
         self.bot_cm = TelebotCommandsManager(self.bot)
         self.bt = ButtonsManager(self.bot_cm)
 
+        self.calendars = calendars.CalendarManager(self.bt)
+        self.paginations = paginations.TelegramPagination(self.bt, db, cm, self.bot_cm, menu)
+        self.menu = menu.MenuManager(self.bot, self.bt, self.calendars, self.paginations)
 
-
-        self.menu = menu.MenuManager(self.bot, self.bt, db, cm, self.bot_cm)
-        self.cl_test = calendar_.Calendar(self.bot, self.bt, db, cm, self.bot_cm, self.menu, calendar_id=1, max_date=date.today(), min_date=date.today() - timedelta(days=365))
-        self.pg = TelegramPagination( self.bt, db, cm, cl_2, self.bot_cm)
-        self.admin = admin.AdminHandlers(cm,  self.bt, lg, cl_1, self.pg, self.bot_cm)
-        self.client = client.ClientHandlers(cm, self.bt, lg, self.bot_cm, self.menu, self.cl_test)
-        self.other = other.OtherHandlers(cm,  self.bt, lg, cl_1, cl_2, self.pg, self.bot_cm, self.menu, self.cl_test)
+        self.pg = TelegramPagination( self.bt, db, cm, self.bot_cm, self.menu)
+        self.admin = admin.AdminHandlers(cm,  self.bt, lg, self.pg, self.bot_cm, self.menu, self.calendars)
+        self.client = client.ClientHandlers(cm, self.bt, lg, self.bot_cm, self.menu)
+        self.other = other.OtherHandlers(cm,  self.bt, lg, self.pg, self.bot_cm, self.menu)
 
     def main(self):
 

@@ -210,7 +210,7 @@ class ButtonsManager:
         return params
 
     @staticmethod
-    def get_buttons_by_id(buttons_id: list, lang: str, data: dict=None) -> dict | None:
+    def get_buttons_by_id(buttons_id: list, lang: str) -> dict | None:
         if not buttons_id:
             return None
 

@@ -5,13 +5,12 @@ class ClientHandlers:
     """
     Класс с клиентскими обработчиками сообщений телебота.
     """
-    def __init__(self, cm, bt, lg, bot_cm, menu, cl_test):
+    def __init__(self, cm, bt, lg, bot_cm, menu):
         self.cm = cm
         self.bt = bt
         self.lg = lg
         self.bot_cm = bot_cm
         self.menu = menu
-        self.cl_test = cl_test
 
     def main(self, bot):
         @bot.message_handler(commands=['start'])

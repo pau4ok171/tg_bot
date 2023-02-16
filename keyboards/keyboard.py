@@ -1,13 +1,12 @@
 import schemas
+from command import CommandManager
+
+
+cm = CommandManager()
 
 
 class Keyboard:
-    def __init__(self, bot=None, bt=None, db=None, cm=None, bot_cm=None):
-        self.bot = bot
-        self.bt = bt
-        self.db = db
-        self.cm = cm
-        self.bot_cm = bot_cm
+    def __init__(self):
         self.lang = 'ru'
         self.trans = None
 
@@ -23,4 +22,4 @@ class Keyboard:
 
         if not self.trans or lang != self.lang:
             self.lang = lang
-            self.trans = self.cm.select_translations(self.lang)
+            self.trans = cm.select_translations(self.lang)

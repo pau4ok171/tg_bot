@@ -17,15 +17,22 @@ NEXT_STEP = {'YEAR': 'MONTH', 'MONTH': 'DAY', 'DAY': 'CHOSEN'}
 PREV_STEP = {'YEAR': 'EMPTY', 'MONTH': 'YEAR', 'DAY': 'MONTH'}
 
 class Calendar(Keyboard):
-    def __init__(self, bot=None, bt=None, db=None, cm=None, bot_cm=None, menu=None, calendar_id=0, max_date=None, min_date=None, current_date=None):
-        super().__init__(bot, bt, db, cm, bot_cm)
+    def __init__(
+            self,
+            bt,
+            calendar_id=0,
+            max_date=None,
+            min_date=None,
+            current_date=None,
+            return_button=None
+    ):
+        super().__init__()
 
         if current_date is None: current_date = date.today()
         if max_date is None: max_date = date(2999, 12, 31)
         if min_date is None: min_date = date(1, 1, 1)
 
-        self.menu = menu
-        self.calendar_id = calendar_id
+        self.bt = bt
         self.handler = f'calendar_{calendar_id}'
         self.prev_button = '<<'
         self.next_button = '>>'
@@ -38,6 +45,7 @@ class Calendar(Keyboard):
         self.max_date = max_date
         self.min_date = min_date
         self.ref_date = current_date
+        self.return_button = return_button
 
     def build(self, params: dict=None, diff: int=0) -> tuple[schemas.Keyboard | None, date | None]:
         if not params: params = self._build_params()
@@ -266,14 +274,10 @@ class Calendar(Keyboard):
         return n_buttons
 
     def _build_footer(self) -> list[list[InlineKeyboardButton]]:
-        # Footer
+        # Footer 10001 or 10030
         size = 2
-        return_button = None
-        if self.calendar_id == 1:
-            return_button = 10001
-        elif self.calendar_id == 2:
-            return_button = 10030
-        buttons = [return_button, 10002]
+
+        buttons = [self.return_button, 10002]
 
         f_buttons: dict = self.bt.get_buttons_by_id(buttons, lang=self.lang)
 
@@ -294,6 +298,7 @@ class Calendar(Keyboard):
         Иначе сформировать новый params.
         """
         year, month, day = self.current_date.timetuple()[:3]
+
         if call:
             params = call.data.split('&')
             params = dict(
@@ -310,15 +315,15 @@ class Calendar(Keyboard):
 
         return params
 
-    def func(self):
+    @staticmethod
+    def func(calendar_id):
         def validation(call) -> bool:
-            return call.data.startswith(self.handler)
+            start = f'calendar_{calendar_id}'
+            return call.data.startswith(start)
 
         return validation
 
-    def process(self, call):
-        kb = None
-        chosen_date = None
+    def process(self, call) -> tuple[schemas.Keyboard | None, date | None]:
         params = self._build_params(call)
         action = params['action']
         step = params['step']
@@ -333,6 +338,8 @@ class Calendar(Keyboard):
         elif action == 'nav_middle':
             params['step'] = PREV_STEP[step]
             kb, chosen_date = self.build(params)
+        else:
+            return None, None
 
         return kb, chosen_date
 

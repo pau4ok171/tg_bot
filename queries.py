@@ -160,7 +160,7 @@ add_translation = """
     VALUES (%s, %s, %s, %s, %s)
 """
 
-select_books_for_pagination = f"""
+select_books_for_pagin_s = f"""
     SELECT id, author, name
     FROM books
     WHERE 
@@ -169,11 +169,49 @@ select_books_for_pagination = f"""
     LIMIT 10 OFFSET %s
 """
 
+select_books_for_pagin_f = f"""
+    SELECT id, author, name
+    FROM books
+    WHERE 
+        YEAR(started) > 1900
+		AND YEAR(finished) < 1900
+    LIMIT 10 OFFSET %s
+"""
+
+select_books_for_pagin_t = f"""
+    WITH Weights AS (
+        SELECT 
+            id,
+            name,
+            author,
+            DATEDIFF(NOW(), added)/
+                (SELECT MAX(DATEDIFF(NOW(), added)) AS date_par FROM books WHERE YEAR(finished) <= 1900) AS date_par,
+            (SELECT MIN(page_nb) FROM books WHERE YEAR(finished) <= 1900)/page_nb AS page_par,
+            importance/3 AS importance_par,
+            (SELECT weight FROM genre_weight WHERE genre_weight.genre = books.genre)/3 AS genre_par
+        FROM books
+        WHERE YEAR(finished) <= 1900)
+    
+    SELECT id, name, author
+    FROM Weights
+    ORDER BY score DESC
+    LIMIT 10 OFFSET %s
+"""
+
 select_books_nb_non_read = """
     SELECT COUNT(*) as count
     FROM books
     WHERE
         YEAR(started) < 1900
+		AND 
+		YEAR(finished) < 1900
+"""
+
+select_books_nb_started = """
+    SELECT COUNT(*) as count
+    FROM books
+    WHERE
+        YEAR(started) > 1900
 		AND 
 		YEAR(finished) < 1900
 """
@@ -193,7 +231,10 @@ queries = {
     'create_buttons_db': create_buttons_db,
     'add_button': add_button,
     'add_translation':add_translation,
-    'select_books_for_pagination': select_books_for_pagination,
+    'select_books_for_pagin_f': select_books_for_pagin_f,
+    'select_books_for_pagin_s': select_books_for_pagin_s,
+    'select_books_for_pagin_t': select_books_for_pagin_t,
     'select_books_nb_non_read': select_books_nb_non_read,
+    'select_books_nb_started': select_books_nb_started,
 
 }

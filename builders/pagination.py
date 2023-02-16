@@ -3,7 +3,6 @@ from datetime import datetime
 import config
 import json
 import math
-from handlers.states import States
 
 VERSION = config.version
 TRANS_ID = [21, 50, 51, 53]
@@ -13,16 +12,18 @@ NAV_BUTTON_LIST_2 = ['first2', 'prev2', 'choice2', 'next2', 'last2']
 
 
 class TelegramPagination:
-    def __init__(self, bt, db, cm, cl_2, bot_cm, pagin_id=0):
+    def __init__(self, bt, db, cm, bot_cm, menu, pagin_id=0, return_button=None):
         self.bt = bt
         self.db = db
         self.cm = cm
-        self.cl_2 = cl_2
         self.bot_cm = bot_cm
+        self.menu = menu
+        self.return_button = return_button
 
-        self.handler = 'pagin'
-        self.date = datetime.strftime(datetime.now().date(), '%d%m%Y')
         self.pagin_id = pagin_id
+        self.handler = f'pagination_{pagin_id}'
+        self.date = datetime.strftime(datetime.now().date(), '%d%m%Y')
+
         self.session_id = VERSION
 
         self.prev_button = '<<'
@@ -41,7 +42,14 @@ class TelegramPagination:
         if level == 1:
             # Создать лист книг-кнопок
             buttons = self._build_book_menu(page=page)
-            last_page = math.ceil(int(self.cm.select_books_nb_non_read()) / 10)
+
+            if self.pagin_id == 1:
+                last_page = math.ceil(int(self.cm.select_books_nb_non_read()) / 10)
+            elif self.pagin_id == 2:
+                last_page = math.ceil(int(self.cm.select_books_nb_started()) / 10)
+            elif self.pagin_id == 3:
+                last_page = 1
+
             # Задать параметры
             row_size = 1
 
@@ -78,7 +86,15 @@ class TelegramPagination:
         # Вернуть из бд набор из книг
         skip_page = (page - 1) * 10
 
-        books = self.cm.select_books_for_pagination((skip_page,))
+        if self.pagin_id == 1:
+            books = self.cm.select_books_for_pagin_f((skip_page,))
+        elif self.pagin_id == 2:
+            books = self.cm.select_books_for_pagin_s((skip_page,))
+        elif self.pagin_id == 3:
+            books = self.cm.select_books_for_pagin_t((skip_page,))
+        else:
+            books = None
+
         books = [dict(zip(['id', 'author', 'name'], book)) for book in books]
 
         # Создать кнопки для книг
@@ -169,7 +185,7 @@ class TelegramPagination:
 
     def _build_footer_buttons(self):
         # Создать лист нижних кнопок
-        footer_buttons_id = [10024, 10026]
+        footer_buttons_id = [self.return_button, 10026]
         footers = self.bt.get_buttons_by_id(footer_buttons_id, lang=self.bt.lang)
 
         # Создать нижние кнопки
@@ -198,10 +214,10 @@ class TelegramPagination:
 
         return params
 
-    @staticmethod
-    def func():
+
+    def func(self, pagin_id):
         def validation(call):
-            start = f'pagin&'
+            start = f'pagination_{pagin_id}'
             return call.data.startswith(start)
         return validation
 
@@ -220,7 +236,7 @@ class TelegramPagination:
 
         # Обработка объектов-кнопок 1 уровня
         elif action == 'object1':
-            await self._process_book_call(bot, call, params)
+            await self._process_book_call(call)
 
         elif action == 'object2':
             await self._process_nav_call(level=1, bot=bot, call=call, params=params)
@@ -267,33 +283,10 @@ class TelegramPagination:
         text = f'{trans[50]} {current_page} {trans[51]} {last_page if level == 1 else max_page_nb}'
         await self.bt.get_edited_text(bot, call, text, reply_markup)
 
-    async def _process_book_call(self, bot, call, params):
-        self.bt.lang = call.from_user.language_code
-        trans = self.cm.select_translation_by_id(TRANS_ID, self.bt.lang)
-        # Сохранить id книг в память
-        book_id = params['data']['book_id']
-
-        # Отчистить сохраненные состояния в памяти
-        await bot.delete_state(call.message.from_user.id, call.message.id)
-
-        # Открыть состояние id книги
-        await bot.set_state(call.message.from_user.id,
-                            States.book_id,
-                            call.message.chat.id)
-
-        # Сохранить состояние id книги в память
-        async with bot.retrieve_data(call.message.from_user.id, call.message.chat.id) as data:
-            data['book_id'] = book_id
-
-        self.cl_2.locale = call.from_user.language_code
-        # Добавить дополнительные кнопки в календарь
-        self.cl_2.additional_buttons = self.bt.additional_buttons_for_get_read('started')
-        # Построить календарь
-        reply_markup, step = self.cl_2.build()
-
+    async def _process_book_call(self, call):
         # Отправить календарь пользователю
-        text = f'{trans[53]}'
-        await self.bot_cm.edit_message(call, text, reply_markup)
+        kb = self.menu.build_calendar_clf_rb(call)
+        await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
     @staticmethod
     def _build_menu(buttons, row_size, nav_buttons=None, header_buttons=None, footer_buttons=None):

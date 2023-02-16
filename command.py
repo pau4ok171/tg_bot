@@ -195,16 +195,33 @@ class CommandManager:
 
         return response
 
+    @staticmethod
+    def select_books_for_pagin_f(values):
+        query = queries['select_books_for_pagin_f']
+        response = db.crud_data(query, values)
+        return response
 
     @staticmethod
-    def select_books_for_pagination(values):
-        query = queries['select_books_for_pagination']
+    def select_books_for_pagin_s(values):
+        query = queries['select_books_for_pagin_s']
+        response = db.crud_data(query, values)
+        return response
+
+    @staticmethod
+    def select_books_for_pagin_t(values):
+        query = queries['select_books_for_pagin_t']
         response = db.crud_data(query, values)
         return response
 
     @staticmethod
     def select_books_nb_non_read():
         query = queries['select_books_nb_non_read']
+        response = db.crud_data(query, resp_type='str')
+        return response
+
+    @staticmethod
+    def select_books_nb_started():
+        query = queries['select_books_nb_started']
         response = db.crud_data(query, resp_type='str')
         return response
 

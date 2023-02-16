@@ -1,5 +1,5 @@
 from private_access import private_access
-from telegram_bot_calendar import DetailedTelegramCalendar
+from builders.calendar_ import Calendar
 from handlers.states import States
 from datetime import date
 import math
@@ -12,19 +12,17 @@ class OtherHandlers:
     """
     Класс с дополнительными обработчиками сообщений телебота.
     """
-    def __init__(self, cm, bt, lg, cl_1, cl_2, pg, bot_cm, menu, cl_test):
+    def __init__(self, cm, bt, lg, pg, bot_cm, menu):
         self.cm = cm
         self.bt = bt
         self.lg = lg
-        self.cl_1 = cl_1
-        self.cl_2 = cl_2
         self.pg = pg
         self.bot_cm = bot_cm
         self.menu = menu
-        self.cl_test = cl_test
 
     def main(self, bot):
-        @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=1))
+        # Календарь для законченных книг
+        @bot.callback_query_handler(func=Calendar.func(calendar_id=1))
         async def calender_for_finished(call):
             lang = call.from_user.language_code
             self.bt.lang = lang
@@ -60,7 +58,8 @@ class OtherHandlers:
                 reply_markup = self.bt.build_confirm_adding('finished', call)
                 await self.bot_cm.edit_message(call, text, reply_markup)
 
-        @bot.callback_query_handler(func=DetailedTelegramCalendar.func(calendar_id=2))
+        # Календарь для начатых книг
+        @bot.callback_query_handler(func=Calendar.func(calendar_id=2))
         async def calender_for_started(call):
             self.bt.lang = call.from_user.language_code
             trans = self.cm.select_translation_by_id(TRANS_ID, self.bt.lang)
