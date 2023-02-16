@@ -1,5 +1,12 @@
 pandas
 coloredlogs
-pyTelegramBotAPI
+pyTelegramBotAPI==4.10.0
 python-decouple
-mysql-connector-python
+mysql-connector-python==8.0.32
+python-dateutil
+pip==23.0
+attrs
+wheel==0.38.4
+setuptools==67.3.2
+numpy==1.24.2
+mysql
