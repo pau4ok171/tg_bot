@@ -9,13 +9,12 @@ import asyncio
 
 # My import
 from config import tg_token
-from command import CommandManager
+from commands import CommandManager
 from buttons import ButtonsManager
 from database import DatabaseManager
 from data_logging import LoggingManager
 from handlers import admin, client, other
-from builders.pagination import TelegramPagination
-from tg_bot_commands import TelebotCommandsManager
+from bot_commands import TelebotCommandsManager
 from keyboards import menu, calendars, paginations
 
 # Telebot token
@@ -48,22 +47,19 @@ class TelebotManager:
             colorful_logs=True
         )
 
-
-
         self.bot_cm = TelebotCommandsManager(self.bot)
-        self.bt = ButtonsManager(self.bot_cm)
 
-        self.calendars = calendars.CalendarManager(self.bt)
-        self.paginations = paginations.TelegramPagination(self.bt, db, cm, self.bot_cm, menu)
-        self.menu = menu.MenuManager(self.bot, self.bt, self.calendars, self.paginations)
+        self.bt = ButtonsManager()
+        self.calendars = calendars.CalendarManager()
+        self.paginations = paginations.PaginationManager()
 
-        self.pg = TelegramPagination( self.bt, db, cm, self.bot_cm, self.menu)
-        self.admin = admin.AdminHandlers(cm,  self.bt, lg, self.pg, self.bot_cm, self.menu, self.calendars)
-        self.client = client.ClientHandlers(cm, self.bt, lg, self.bot_cm, self.menu)
-        self.other = other.OtherHandlers(cm,  self.bt, lg, self.pg, self.bot_cm, self.menu)
+        self.menu = menu.MenuManager(self.bt, self.calendars, self.paginations)
+
+        self.admin = admin.AdminHandlers(self.bot_cm, self.menu)
+        self.client = client.ClientHandlers(lg, self.bot_cm, self.menu)
+        self.other = other.OtherHandlers(self.bot_cm, self.menu)
 
     def main(self):
-
         self.admin.main(self.bot)
         self.client.main(self.bot)
         self.other.main(self.bot)

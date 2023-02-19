@@ -1,5 +1,5 @@
 from telebot import types
-from command import CommandManager
+from commands import CommandManager
 import config
 from datetime import datetime
 from database import DatabaseManager
@@ -7,9 +7,9 @@ import json
 import random
 import private_access
 
-ADMINS = config.admins
+
 VERSION = config.version
-TRANS_ID = [1, 2]
+
 BUTTONS = {
     'header': [],
     'header_admin': [],
@@ -23,22 +23,40 @@ cm = CommandManager()
 db = DatabaseManager()
 
 class ButtonsManager:
-    def __init__(self, bot_cm):
+    def __init__(self):
         self.lang = 'ru'
-        self.trans = cm.select_translation_by_id(TRANS_ID, self.lang)
         self.row_size = 2
         self.menu_el_size = 1
-        self.bot_cm = bot_cm
 
-    def additional_buttons_for_get_read(self, action) -> list[list[dict]]:
-        trans = cm.select_translation_by_id(TRANS_ID, self.lang)
+    def build_footer_buttons(self, menu_id, response):
+        if menu_id == 'A1':
+            return_button = 10031
+        elif menu_id == 'C1':
+            return_button = 10032
+        elif menu_id == 'C2':
+            return_button = 10036
+        elif menu_id == 'C3':
+            return_button = 10037
+        elif menu_id == 'C4':
+            return_button = 10038
+        elif menu_id == 'C5':
+            return_button = 10039
+        # Создать новую пагинацию-1
+        elif menu_id == 'O1':
+            return_button = 10040
+        # Создать новую пагинацию-2
+        elif menu_id == 'O2':
+            return_button = 10041
+        else:
+            return_button = None
 
-        additional_buttons = [
-                    [{'text': f'{trans[1]}', 'callback_data': f'calender_{action}_cancel'},
-                     {'text': f'{trans[2]}', 'callback_data': 'calender_home'}]
-        ]
+        buttons = {
+            'footer': [return_button, 10026]
+        }
 
-        return additional_buttons
+        reply_markup = self._build_menu(buttons, response, size=self.menu_el_size)
+
+        return reply_markup
 
     def build_get_books_read(self, response):
         main_buttons = dict(cm.select_reading_books())
@@ -143,10 +161,10 @@ class ButtonsManager:
 
         return reply_markup
 
-    def build_confirm_adding(self, action, response):
+    def build_confirm_adding(self, calendar_id, response):
 
         buttons = {
-            'main': [10020, 10021] if action == 'finished' else [10028, 10029],
+            'main': [10020, 10021] if calendar_id == 1 else [10028, 10029],
         }
 
         reply_markup = self._build_menu(buttons, response)

@@ -194,7 +194,7 @@ select_books_for_pagin_t = f"""
     
     SELECT id, name, author
     FROM Weights
-    ORDER BY score DESC
+    ORDER BY id ASC
     LIMIT 10 OFFSET %s
 """
 
@@ -214,6 +214,12 @@ select_books_nb_started = """
         YEAR(started) > 1900
 		AND 
 		YEAR(finished) < 1900
+"""
+
+select_book_nb = """
+    SELECT COUNT(*) as count
+    FROM BOOKS
+     WHERE YEAR(finished) <= 1900
 """
 
 queries = {
@@ -236,5 +242,7 @@ queries = {
     'select_books_for_pagin_t': select_books_for_pagin_t,
     'select_books_nb_non_read': select_books_nb_non_read,
     'select_books_nb_started': select_books_nb_started,
+    'select_book_nb': select_book_nb,
+
 
 }

@@ -1,6 +1,6 @@
 import config
 import inspect
-from command import CommandManager
+from commands import CommandManager
 
 ADMINS = config.admins
 REGISTERED = config.registered

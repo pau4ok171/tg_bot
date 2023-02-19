@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 import config
 from queries import queries
@@ -128,7 +130,7 @@ class CommandManager:
             where=where
         )
 
-        response = db.crud_data(query, resp_type='date')[0][0]
+        response = db.crud_data(query, resp_type='str')
 
         return response
 
@@ -196,34 +198,32 @@ class CommandManager:
         return response
 
     @staticmethod
-    def select_books_for_pagin_f(values):
-        query = queries['select_books_for_pagin_f']
-        response = db.crud_data(query, values)
+    def select_books_for_pagin(pagin_id: int, values: tuple):
+        if pagin_id == 1:
+            query = queries['select_books_for_pagin_f']
+        elif pagin_id == 2:
+            query = queries['select_books_for_pagin_s']
+        elif pagin_id == 3:
+            query = queries['select_books_for_pagin_t']
+        else:
+            query = None
+
+        response = db.crud_data(query, values, resp_type='rows')
         return response
 
     @staticmethod
-    def select_books_for_pagin_s(values):
-        query = queries['select_books_for_pagin_s']
-        response = db.crud_data(query, values)
-        return response
+    def select_book_nb_for_pagin(pagin_id: int) -> int:
+        if pagin_id == 1:
+            query = queries['select_books_nb_started']
+        elif pagin_id == 2:
+            query = queries['select_books_nb_non_read']
+        elif pagin_id == 3:
+            query = queries['select_book_nb']
+        else:
+            query = None
 
-    @staticmethod
-    def select_books_for_pagin_t(values):
-        query = queries['select_books_for_pagin_t']
-        response = db.crud_data(query, values)
-        return response
-
-    @staticmethod
-    def select_books_nb_non_read():
-        query = queries['select_books_nb_non_read']
         response = db.crud_data(query, resp_type='str')
-        return response
-
-    @staticmethod
-    def select_books_nb_started():
-        query = queries['select_books_nb_started']
-        response = db.crud_data(query, resp_type='str')
-        return response
+        return int(response)
 
     @staticmethod
     def get_read(values: tuple):

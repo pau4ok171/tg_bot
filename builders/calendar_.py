@@ -10,16 +10,17 @@ from dateutil.relativedelta import relativedelta
 from calendar import monthrange
 
 
+# Задать понедельник первым днем недели
 calendar.setfirstweekday(calendar.MONDAY)
 
 
 NEXT_STEP = {'YEAR': 'MONTH', 'MONTH': 'DAY', 'DAY': 'CHOSEN'}
 PREV_STEP = {'YEAR': 'EMPTY', 'MONTH': 'YEAR', 'DAY': 'MONTH'}
 
+
 class Calendar(Keyboard):
     def __init__(
             self,
-            bt,
             calendar_id=0,
             max_date=None,
             min_date=None,
@@ -32,7 +33,6 @@ class Calendar(Keyboard):
         if max_date is None: max_date = date(2999, 12, 31)
         if min_date is None: min_date = date(1, 1, 1)
 
-        self.bt = bt
         self.handler = f'calendar_{calendar_id}'
         self.prev_button = '<<'
         self.next_button = '>>'
@@ -41,13 +41,17 @@ class Calendar(Keyboard):
         self.year_size = 2
         self.month_size = 3
         self.day_size = 7
+        self.nav_size = 3
+        self.footer_size = 2
         self.current_date = current_date
         self.max_date = max_date
         self.min_date = min_date
         self.ref_date = current_date
         self.return_button = return_button
 
-    def build(self, params: dict=None, diff: int=0) -> tuple[schemas.Keyboard | None, date | None]:
+    def build(self, call, params: dict=None, diff: int=0) -> tuple[schemas.Keyboard | None, date | None]:
+        self.set_user_lang(call)
+
         if not params: params = self._build_params()
 
         step = params['step']
@@ -206,22 +210,9 @@ class Calendar(Keyboard):
 
         return buttons
 
-    @staticmethod
-    def _build_buttons(text: list, callback: list, size: int) -> list[list[InlineKeyboardButton]]:
-        buttons = [[
-            InlineKeyboardButton(
-                text=v,
-                callback_data=k
-            ) for k, v in dict(zip(callback, text)).items()
-        ]]
-
-        buttons = [buttons[0][i:i + size] for i in range(0, len(buttons[0]), size)]
-
-        return buttons
-
     def _build_navigation(self, params) -> list[list[InlineKeyboardButton]]:
         # Navigation
-        size = 3
+        size = self.nav_size
         nav_middle = None
         prev_date = None
         next_date = None
@@ -275,11 +266,11 @@ class Calendar(Keyboard):
 
     def _build_footer(self) -> list[list[InlineKeyboardButton]]:
         # Footer 10001 or 10030
-        size = 2
+        size = self.footer_size
 
         buttons = [self.return_button, 10002]
 
-        f_buttons: dict = self.bt.get_buttons_by_id(buttons, lang=self.lang)
+        f_buttons: dict = self.get_buttons_by_id(buttons, lang=self.lang)
 
         text = list(f_buttons.values())
         callback = list(f_buttons.keys())
@@ -330,14 +321,14 @@ class Calendar(Keyboard):
 
         if action == 'choice':
             params['step'] = NEXT_STEP[step]
-            kb, chosen_date = self.build(params)
+            kb, chosen_date = self.build(call, params)
         elif action == 'nav_back':
-            kb, chosen_date = self.build(params, diff=-1)
+            kb, chosen_date = self.build(call, params, diff=-1)
         elif action == 'nav_next':
-            kb, chosen_date = self.build(params, diff=+1)
+            kb, chosen_date = self.build(call, params, diff=+1)
         elif action == 'nav_middle':
             params['step'] = PREV_STEP[step]
-            kb, chosen_date = self.build(params)
+            kb, chosen_date = self.build(call, params)
         else:
             return None, None
 
@@ -352,5 +343,7 @@ class Calendar(Keyboard):
             return min_date <= d <= max_date
         elif step == 'DAY':
             return self.min_date <= d <= self.max_date
+
+
 
 
