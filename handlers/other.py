@@ -97,23 +97,32 @@ class OtherHandlers:
             # Задать язык пользователя
             self.menu.set_user_lang(call)
 
+            # К книгам finished
             if call.data.startswith('other&calendar_1_cancel'):
-                # К книгам finished
-                await bot.delete_state(call.message.from_user.id, call.message.id)
+                # Отчистить сохраненные состояния в памяти
+                await self.bot_cm.reset_state_data(call, state_id=1)
 
                 kb, res = self.menu.build_calendar_cancel_kb(call, pagin_id=1)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
+            # К книгам started
             elif call.data.startswith('other&calendar_2_cancel'):
-                # К книгам started
-                await bot.delete_state(call.message.from_user.id, call.message.id)
+                # Отчистить сохраненные состояния в памяти
+                await self.bot_cm.reset_state_data(call, state_id=2)
 
                 kb, res = self.menu.build_calendar_cancel_kb(call, pagin_id=2)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
-            elif call.data.startswith('other&calendar_home'):
+            elif call.data.startswith('other&calendar_1_home'):
                 # Отчистить сохраненные состояния в памяти
-                await bot.delete_state(call.message.from_user.id, call.message.id)
+                await self.bot_cm.reset_state_data(call, state_id=1)
+
+                kb = self.menu.build_start_menu_kb(call)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('other&calendar_2_home'):
+                # Отчистить сохраненные состояния в памяти
+                await self.bot_cm.reset_state_data(call, state_id=2)
 
                 kb = self.menu.build_start_menu_kb(call)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
@@ -127,7 +136,7 @@ class OtherHandlers:
                 kb = await self.menu.process_confirm_crud_book(self.bot_cm, call, calendar_id=1)
 
                 # Отчистить сохраненные состояния в памяти
-                await bot.delete_state(call.message.from_user.id, call.message.id)
+                await self.bot_cm.reset_state_data(call, state_id=1)
 
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
@@ -136,27 +145,21 @@ class OtherHandlers:
                 kb = await self.menu.process_confirm_crud_book(self.bot_cm, call, calendar_id=2)
 
                 # Отчистить сохраненные состояния в памяти
-                await bot.delete_state(call.message.from_user.id, call.message.id)
+                await self.bot_cm.reset_state_data(call, state_id=2)
 
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
             elif call.data.startswith('other&decline_get_finished_book'):
-                # Отчистить сохраненные состояния в памяти
-                async with bot.retrieve_data(call.message.from_user.id,
-                                       call.message.chat.id) as data:
-                    data['finished'] = None
-                    book_id = data['book_id']
+                # Отчистить date, вернуть book_id
+                book_id = await self.bot_cm.retrieve_date(call, state_id=1)
 
                 # Отправить календарь пользователю
                 kb = await self.menu.build_calendar_kb(self.bot_cm, call, book_id, calendar_id=1)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
             elif call.data.startswith('other&decline_get_started_book&'):
-                # Удалить состояние
-                async with bot.retrieve_data(call.message.from_user.id,
-                                       call.message.chat.id) as data:
-                    data['started'] = None
-                    book_id = data['book_id']
+                # Отчистить date, вернуть book_id
+                book_id = await self.bot_cm.retrieve_date(call, state_id=2)
 
                 # Отправить календарь пользователю
                 kb = await self.menu.build_calendar_kb(self.bot_cm, call, book_id, calendar_id=2)

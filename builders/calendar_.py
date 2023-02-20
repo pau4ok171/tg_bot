@@ -25,7 +25,7 @@ class Calendar(Keyboard):
             max_date=None,
             min_date=None,
             current_date=None,
-            return_button=None
+            footer_buttons=None
     ):
         super().__init__()
 
@@ -47,7 +47,7 @@ class Calendar(Keyboard):
         self.max_date = max_date
         self.min_date = min_date
         self.ref_date = current_date
-        self.return_button = return_button
+        self.footers_buttons = footer_buttons
 
     def build(self, call, params: dict=None, diff: int=0) -> tuple[schemas.Keyboard | None, date | None]:
         self.set_user_lang(call)
@@ -268,7 +268,7 @@ class Calendar(Keyboard):
         # Footer 10001 or 10030
         size = self.footer_size
 
-        buttons = [self.return_button, 10002]
+        buttons: list = self.footers_buttons
 
         f_buttons: dict = self.get_buttons_by_id(buttons, lang=self.lang)
 

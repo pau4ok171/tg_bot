@@ -9,7 +9,7 @@ class CalendarManager:
             calendar_id=1,
             max_date=date.today(),
             min_date=date.today() - timedelta(days=365),
-            return_button=10001
+            footer_buttons=[10001, 10002]
         )
 
         # Календарь для начатых
@@ -17,7 +17,7 @@ class CalendarManager:
             calendar_id=2,
             min_date=date.today() - timedelta(days=30),
             max_date=date.today() + timedelta(days=30),
-            return_button=10030
+            footer_buttons=[10030, 10042]
         )
 
     def set_min_date(self, calendar_id, min_date: str):

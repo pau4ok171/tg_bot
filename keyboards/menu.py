@@ -64,7 +64,7 @@ class MenuManager(Keyboard):
         # Reset машины состояния
         await bot_cm.reset_state_data(response, calendar_id)
         # Сохранить состояние id книги в память
-        await bot_cm.set_book_id(response, book_id)
+        await bot_cm.set_book_id(response, book_id, calendar_id)
 
         # Задать минимальную дату для календаря
         self.calendars.set_min_date(calendar_id, cm.select_started_by_id(book_id))
@@ -88,6 +88,7 @@ class MenuManager(Keyboard):
         else:
             return None
 
+        # Записываем в машину состояния данные о дате
         values = await bot_cm.set_date(res, call, calendar_id)
 
         book_name = cm.select_book_name_by_id(values[1])
@@ -105,7 +106,7 @@ class MenuManager(Keyboard):
 
     """-----------------------------ИНФО_В_БД-----------------------------"""
     async def process_confirm_crud_book(self, bot_cm, call, calendar_id):
-        values = await bot_cm.retrieve_data(call, calendar_id)
+        values = await bot_cm.get_data(call, calendar_id)
 
         # Отправить команду на добавление данных в бд
         if calendar_id == 1:
