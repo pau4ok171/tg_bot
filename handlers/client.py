@@ -1,4 +1,7 @@
-from private_access import private_access
+from authentication import AuthentificationManager
+
+
+am = AuthentificationManager()
 
 
 class ClientHandlers:
@@ -12,7 +15,7 @@ class ClientHandlers:
 
     def main(self, bot):
         @bot.message_handler(commands=['start'])
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def start_message(message):
             # Задать язык пользователя
             self.menu.set_user_lang(message)
@@ -25,6 +28,10 @@ class ClientHandlers:
 
             # Задать меню базовых команд
             await self.bot_cm.set_menu_commands()
+
+            # Отправить приветствие
+            text = self.menu.build_start_message_text(message)
+            await self.bot_cm.send_message(message, text)
 
             # Отправить сообщение пользователю
             kb = self.menu.build_start_menu_kb(message)
@@ -43,7 +50,7 @@ class ClientHandlers:
             await self.bot_cm.send_message(message, text)
 
         @bot.message_handler(content_types=['text'])
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def text_message(message):
             # Задать язык пользователя
             self.menu.set_user_lang(message)
@@ -56,7 +63,7 @@ class ClientHandlers:
             await self.bot_cm.send_message(message, text)
 
         @bot.callback_query_handler(func=lambda call: call.data.startswith('client'))
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def callback_inline(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -123,11 +130,5 @@ class ClientHandlers:
             elif call.data.startswith('client&books_by_category_and_lang'):
                 # Отправить клавиатуру пользователю C4
                 kb = self.menu.build_books_by_category_and_lang_kb(call)
-                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
-
-                """---------------------------ЧТО ПОЧИТАТЬ---------------------------"""
-            elif call.data.startswith('client&to_read'):
-                # Отправить клавиатуру пользователю C5
-                kb = self.menu.build_to_read_kb(call)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 

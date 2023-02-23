@@ -192,9 +192,15 @@ select_books_for_pagin_t = f"""
         FROM books
         WHERE YEAR(finished) <= 1900)
     
-    SELECT id, name, author
+    SELECT id, name, author, ROUND((date_par + page_par + importance_par + genre_par)/4, 4) AS score
     FROM Weights
-    ORDER BY id ASC
+    ORDER BY score DESC
+    LIMIT 10 OFFSET %s
+"""
+
+select_users_for_pagin_u = f"""
+    SELECT id, user_id, username
+    FROM unique_users
     LIMIT 10 OFFSET %s
 """
 
@@ -222,6 +228,54 @@ select_book_nb = """
      WHERE YEAR(finished) <= 1900
 """
 
+create_unique_users_table = """
+    CREATE TABLE IF NOT EXISTS unique_users(
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        username VARCHAR(30) NOT NULL,
+        first_name VARCHAR(30) NOT NULL,
+        last_name VARCHAR(30) NULL,
+        level_access VARCHAR(30) NOT NULL,
+        added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+"""
+
+select_unique_users = """
+    SELECT user_id
+    FROM unique_users
+"""
+
+select_unique_users_nb = f"""
+    SELECT COUNT(*) as count
+    FROM unique_users
+"""
+
+add_user_to_unique_users = """
+    INSERT INTO unique_users(
+        user_id,
+        username,
+        first_name,
+        last_name,
+        level_access
+    )
+    VALUES(%s, %s, %s, %s, %s)
+"""
+
+select_user_access_level_by_id = """
+    SELECT level_access
+    FROM unique_users
+    WHERE
+        user_id = %s
+"""
+
+select_user_info_by_id = """
+    SELECT user_id, username, first_name, last_name, level_access, added, updated
+    FROM unique_users
+    WHERE
+        id = %s
+"""
+
 queries = {
     'create_db': create_db,
     'show_tables': show_tables,
@@ -243,6 +297,13 @@ queries = {
     'select_books_nb_non_read': select_books_nb_non_read,
     'select_books_nb_started': select_books_nb_started,
     'select_book_nb': select_book_nb,
+    'create_unique_users_table': create_unique_users_table,
+    'select_unique_users': select_unique_users,
+    'add_user_to_unique_users': add_user_to_unique_users,
+    'select_user_access_level_by_id': select_user_access_level_by_id,
+    'select_users_for_pagin_u': select_users_for_pagin_u,
+    'select_unique_users_nb': select_unique_users_nb,
+    'select_user_info_by_id': select_user_info_by_id,
 
 
 }

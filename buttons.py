@@ -5,7 +5,7 @@ from datetime import datetime
 from database import DatabaseManager
 import json
 import random
-import private_access
+from authentication import AuthentificationManager
 
 
 VERSION = config.version
@@ -19,6 +19,7 @@ BUTTONS = {
     'footer_admin': [],
 }
 
+am = AuthentificationManager()
 cm = CommandManager()
 db = DatabaseManager()
 
@@ -39,8 +40,6 @@ class ButtonsManager:
             return_button = 10037
         elif menu_id == 'C4':
             return_button = 10038
-        elif menu_id == 'C5':
-            return_button = 10039
         # Создать новую пагинацию-1
         elif menu_id == 'O1':
             return_button = 10040
@@ -74,7 +73,7 @@ class ButtonsManager:
 
         buttons = {
             'header_admin': [10008],
-            'main': [10004, 10005, 10006, 10007, 10022],
+            'main': [10004, 10005, 10006, 10007],
             'main_admin': [10023]
         }
 
@@ -130,19 +129,7 @@ class ButtonsManager:
     def build_books_management(self, response):
 
         buttons = {
-            'main': [10009, 10025],
-            'footer': [10003]
-        }
-
-        reply_markup = self._build_menu(buttons, response)
-
-        return reply_markup
-
-    # TOP BOOKS
-    def build_to_read(self, response):
-
-        buttons = {
-            'main': [10018],
+            'main': [10009, 10025, 10018],
             'footer': [10003]
         }
 
@@ -153,8 +140,19 @@ class ButtonsManager:
     def build_admin_panel(self, response):
 
         buttons = {
-            'main': [10019],
+            'main': [10019, 10043],
             'footer': [10003]
+        }
+
+        reply_markup = self._build_menu(buttons, response)
+
+        return reply_markup
+
+    # Карточка пользователя
+    def build_user_card(self, response):
+        buttons = {
+            'main': [10045],
+            'footer': [10044, 10026],
         }
 
         reply_markup = self._build_menu(buttons, response)
@@ -178,7 +176,7 @@ class ButtonsManager:
         admin_buttons = {k.replace('_admin', ''): v for k, v in buttons.items() if k.endswith('admin')}
         buttons = {k: v for k, v in buttons.items() if not k.endswith('admin')}
 
-        is_admin = private_access.is_admin(response)
+        is_admin = am.is_admin(response)
 
         if is_admin:
             buttons = {k: v + admin_buttons[k] for k, v in buttons.items()}

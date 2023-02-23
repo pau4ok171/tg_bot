@@ -59,15 +59,22 @@ class TelebotCommandsManager:
     async def set_date(self, res, response, state_id):
         # Открыть состояние id книги
         lvl = await self._set_state(response, state_id)
-
-        # Сохранить состояние finished в память
-        # и сформировать кортеж для отправки в бд
-        async with self.bot.retrieve_data(
-                response.message.from_user.id,
-                response.message.chat.id
-        ) as data:
-            data[f'{lvl}_date'] = res
-            values = (data[f'{lvl}_date'], int(data[f'{lvl}_book_id']))
+        try:
+            # Сохранить состояние finished в память
+            # и сформировать кортеж для отправки в бд
+            async with self.bot.retrieve_data(
+                    response.message.from_user.id,
+                    response.message.chat.id
+            ) as data:
+                data[f'{lvl}_date'] = res
+                values = (data[f'{lvl}_date'], int(data[f'{lvl}_book_id']))
+        except Exception as e:
+            print(e)
+            await self.send_message(
+                response,
+                'Данные устарели. Пожалуйста, повторите запрос.'
+            )
+            return None
 
         return values
 

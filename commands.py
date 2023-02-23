@@ -30,10 +30,22 @@ class CommandManager:
             db.crud_data(query, tuple(values))
         print('Данные успешно добавлены!')
 
-    def select_count_read_books(self):
+    def select_books_nb(self):
+        select = ('COUNT(*) AS count',)
+        query = self._build_select_query(select=select)
+        response = db.crud_data(query, resp_type='str')
+        return response
+
+    def select_read_books_nb(self):
         select = ('COUNT(*) AS count',)
         where = {'YEAR(finished)': '> 1900'}
         query = self._build_select_query(select=select, where=where)
+        response = db.crud_data(query, resp_type='str')
+        return response
+
+    @staticmethod
+    def select_reading_books_nb():
+        query = queries['select_books_nb_started']
         response = db.crud_data(query, resp_type='str')
         return response
 
@@ -44,12 +56,6 @@ class CommandManager:
         order_by = {'count': 'DESC'}
         query = self._build_select_query(select=select, where=where, group_by=group_by, order_by=order_by)
         response = db.crud_data(query, resp_type='table')
-        return response
-
-    def select_books(self):
-        select = ('COUNT(*) AS count',)
-        query = self._build_select_query(select=select)
-        response = db.crud_data(query, resp_type='str')
         return response
 
     def select_books_by_category(self):
@@ -143,6 +149,9 @@ class CommandManager:
         return response
 
     def select_token_params(self, lang):
+        # Проверить доступен ли язык
+        lang = lang if lang in AVAILABLE_LANGUAGUES else 'ru'
+
         select = ('handler', 'name', 'buttons.id', 'trans.lang_ru', f'trans.lang_{lang}')
         from_ = 'buttons'
         join = {'translations AS trans': 'ON trans.id = translation_id'}
@@ -178,9 +187,8 @@ class CommandManager:
 
     def select_translations(self, lang) -> dict:
         # Проверить доступен ли язык
-        lang = lang if lang in AVAILABLE_LANGUAGUES else 'ru'
+        if lang not in AVAILABLE_LANGUAGUES: lang = 'ru'
         lang = f'lang_{lang}'
-        trans = {}
 
         # Построить query
         select = ('id', lang)
@@ -196,32 +204,62 @@ class CommandManager:
         return response
 
     @staticmethod
-    def select_books_for_pagin(pagin_id: int, values: tuple):
+    def select_transactions_for_pagin(pagin_id: int, values: tuple) -> dict:
         if pagin_id == 1:
             query = queries['select_books_for_pagin_f']
         elif pagin_id == 2:
             query = queries['select_books_for_pagin_s']
         elif pagin_id == 3:
             query = queries['select_books_for_pagin_t']
+        elif pagin_id == 4:
+            query = queries['select_users_for_pagin_u']
         else:
             query = None
 
-        response = db.crud_data(query, values, resp_type='rows')
+        response = db.crud_data(query, values, resp_type='dict')
         return response
 
     @staticmethod
-    def select_book_nb_for_pagin(pagin_id: int) -> int:
+    def select_transaction_nb_for_pagin(pagin_id: int) -> int:
         if pagin_id == 1:
             query = queries['select_books_nb_started']
         elif pagin_id == 2:
             query = queries['select_books_nb_non_read']
         elif pagin_id == 3:
             query = queries['select_book_nb']
+        elif pagin_id == 4:
+            query = queries['select_unique_users_nb']
         else:
             query = None
 
         response = db.crud_data(query, resp_type='str')
         return int(response)
+
+    @staticmethod
+    def select_unique_users() -> list:
+        query = queries['select_unique_users']
+        response = db.crud_data(query, resp_type='rows')
+        response = [user_id[0] for user_id in response]
+        return response
+
+    @staticmethod
+    def add_user_to_unique_users(values: tuple):
+        query = queries['add_user_to_unique_users']
+        db.crud_data(query, values)
+
+    @staticmethod
+    def get_user_access_level_by_id(user_id: int):
+        values = (user_id,)
+        query = queries['select_user_access_level_by_id']
+        response = db.crud_data(query, values, resp_type='str')
+        return response
+
+    @staticmethod
+    def select_user_info_by_id(user_id: int) -> tuple:
+        values = (user_id,)
+        query = queries['select_user_info_by_id']
+        response = db.crud_data(query, values, resp_type='rows')[0]
+        return response
 
     @staticmethod
     def get_read(values: tuple):
@@ -269,7 +307,7 @@ class CommandManager:
 
     @staticmethod
     def get_execute_query(values=None):
-        query = queries['']
+        query = queries['create_unique_users_table']
         db.crud_data(query, values)
 
 

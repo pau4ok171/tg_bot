@@ -7,15 +7,15 @@ from keyboards.keyboard import Keyboard
 from commands import CommandManager
 
 
-NEXT_STEP = {'BOOK': 'CHOSEN', 'PAGE': 'BOOK'}
-PREV_STEP = {'BOOK': 'PAGE', 'PAGE': 'BOOK'}
+NEXT_STEP = {'TRANSACTION': 'CHOSEN', 'PAGE': 'TRANSACTION'}
+PREV_STEP = {'TRANSACTION': 'PAGE', 'PAGE': 'TRANSACTION'}
 
 cm = CommandManager()
 
 
 
 class TelegramPagination(Keyboard):
-    def __init__(self, pagin_id=0, return_button=None):
+    def __init__(self, pagin_id: int=0, return_button: int=None):
         super().__init__()
 
         self.cm = cm
@@ -34,25 +34,25 @@ class TelegramPagination(Keyboard):
         self. empty_nav_button = '×'
         self.empty_page_button = ' '
         self.max_page_buttons = 42
-        self.book_by_page = 10
-        self.book_size = 1
+        self.transaction_by_page = 10
+        self.transaction_size = 1
         self.page_size = 7
         self.nav_size = 5
         self.footer_size = 3
 
-        # Задать кол-во страниц для книг
-        self.book_last_page = math.ceil(cm.select_book_nb_for_pagin(self.pagin_id) / self.book_by_page)
+        # Задать кол-во страниц для транзакций
+        self.transaction_last_page = math.ceil(cm.select_transaction_nb_for_pagin(self.pagin_id) / self.transaction_by_page)
         # Задать кол-во страниц для меню 2-ого уровня.
-        self.page_last_page = math.ceil(self.book_last_page / self.max_page_buttons)
+        self.page_last_page = math.ceil(self.transaction_last_page / self.max_page_buttons)
 
-    def build(self, call, page=1, params=None) -> tuple[schemas.Keyboard | None, int | None]:
+    def build(self, call, page:int =1, params: dict=None) -> tuple[schemas.Keyboard | None, int | None]:
         self.set_user_lang(call)
 
         if not params: params = self._build_params()
 
         step = params['step']
-        if step == 'BOOK':
-            buttons = self._build_books(page)
+        if step == 'TRANSACTION':
+            buttons = self._build_transactions(page)
         elif step == 'PAGE':
             buttons = self._build_pages(page)
         elif step == 'CHOSEN':
@@ -66,8 +66,8 @@ class TelegramPagination(Keyboard):
         # Footer
         f_buttons = self._build_footer()
 
-        if step == 'BOOK':
-            last_page = self.book_last_page
+        if step == 'TRANSACTION':
+            last_page = self.transaction_last_page
         elif step == 'PAGE':
             last_page = self.page_last_page
         else:
@@ -81,9 +81,9 @@ class TelegramPagination(Keyboard):
 
         return kb, None
 
-    def _build_callback(self, action, step, book_id=None, current_page=None) -> str:
-        if book_id:
-            data = book_id
+    def _build_callback(self, action, step, transaction_id=None, current_page=None) -> str:
+        if transaction_id:
+            data = transaction_id
         elif current_page:
             data = current_page
         else:
@@ -106,36 +106,32 @@ class TelegramPagination(Keyboard):
             params = {
                 'handler_id': f'{self.handler_id}',
                 'action': 'choice',
-                'step': 'BOOK',
+                'step': 'TRANSACTION',
             }
 
         return params
 
-    def _build_books(self, page) -> list[list[InlineKeyboardButton]]:
+    def _build_transactions(self, page) -> list[list[InlineKeyboardButton]]:
         # Вернуть из бд набор из книг
         skip_page = (page - 1) * 10
 
-        books = self.cm.select_books_for_pagin(pagin_id=self.pagin_id, values=(skip_page,))
+        transactions = self.cm.select_transactions_for_pagin(pagin_id=self.pagin_id, values=(skip_page,))
 
-        books = [dict(zip(['id', 'author', 'name'], book)) for book in books]
-
-        text = [
-            f'id: {book["id"]} author: {book["author"]} name: {book["name"]}' for book in books
-        ]
+        text = [' '.join(f'{k}: {v}' for k, v in transaction.items()) for transaction in transactions]
+        id_list = [transaction['id'] for transaction in transactions]
 
         callback = [
             self._build_callback(
                 action='choice',
-                step='BOOK',
-                book_id=book['id']
-
-            ) for book in books
+                step='TRANSACTION',
+                transaction_id=transaction_id
+            ) for transaction_id in id_list
         ]
 
         buttons = self._build_buttons(
             text=text,
             callback=callback,
-            size=self.book_size
+            size=self.transaction_size
         )
 
         return buttons
@@ -146,12 +142,12 @@ class TelegramPagination(Keyboard):
         last = self.max_page_buttons * page
 
         text = [
-            i if i <= self.book_last_page else self.empty_page_button for i in range(first, last+1)
+            i if i <= self.transaction_last_page else self.empty_page_button for i in range(first, last + 1)
         ]
 
         callback = [
             self._build_callback(
-                action='choice' if i <= self.book_last_page else 'empty',
+                action='choice' if i <= self.transaction_last_page else 'empty',
                 step='PAGE',
                 current_page=i
             ) for i in range(first, last+1)
@@ -168,8 +164,8 @@ class TelegramPagination(Keyboard):
     def _build_navigation(self, page, params) -> list[list[InlineKeyboardButton]]:
         step = params['step']
 
-        if step == 'BOOK':
-            last_page = self.book_last_page
+        if step == 'TRANSACTION':
+            last_page = self.transaction_last_page
         elif step == 'PAGE':
             last_page = self.page_last_page
         else:
@@ -229,9 +225,10 @@ class TelegramPagination(Keyboard):
 
         return f_buttons
 
+    # noinspection PyTypeChecker
     @staticmethod
-    def func(pagin_id):
-        def validation(call):
+    def func(pagin_id) -> bool:
+        def validation(call) -> bool:
             start = f'pagination_{pagin_id}'
             return call.data.startswith(start)
         return validation
@@ -260,7 +257,7 @@ class TelegramPagination(Keyboard):
             page = page
             diff = 1
         elif action == 'last':
-            page = self.book_last_page
+            page = self.transaction_last_page
             diff = 0
         else:
             return None, None

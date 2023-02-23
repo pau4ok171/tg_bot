@@ -24,11 +24,15 @@ class DatabaseManager:
             return self._build_str_response(cursor.fetchall())
 
         elif resp_type == 'table':
-            columns = [column[0].title() for column in cursor.description]
-            return self._build_table_response(cursor, columns)
+            titles = [column[0].title() for column in cursor.description]
+            return self._build_table_response(cursor, titles)
 
         elif resp_type == 'rows':
             return cursor.fetchall()
+
+        elif resp_type == 'dict':
+            titles = [column[0].title() for column in cursor.description]
+            return self._build_dict_response(titles, cursor)
 
         else:
             return cursor
@@ -47,5 +51,13 @@ class DatabaseManager:
         prepared_table = f'<pre>{df.to_string(columns=columns, index=False)}</pre>'
 
         return prepared_table
+
+    @staticmethod
+    def _build_dict_response(titles, rows) -> list[dict]:
+        titles = [title.lower() for title in titles]
+        df = pd.DataFrame(data=rows, columns=titles)
+        return df.to_dict(orient='records')
+
+
 
 

@@ -1,4 +1,7 @@
-from private_access import private_access
+from authentication import AuthentificationManager
+
+
+am = AuthentificationManager()
 
 
 class OtherHandlers:
@@ -13,6 +16,7 @@ class OtherHandlers:
     def main(self, bot):
         # Календарь для законченных книг
         @bot.callback_query_handler(func=self.menu.cal_func(calendar_id=1))
+        @am.access_level_check(bot)
         async def calender_for_finished(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -27,10 +31,17 @@ class OtherHandlers:
                     call=call
                 )
 
+            if not kb:
+                kb, res = self.menu.build_pagin_kb(
+                    call,
+                    pagin_id=1
+                )
+
             await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
         # Календарь для начатых книг
         @bot.callback_query_handler(func=self.menu.cal_func(calendar_id=2))
+        @am.access_level_check(bot)
         async def calender_for_started(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -45,10 +56,17 @@ class OtherHandlers:
                     call=call
                 )
 
+            if not kb:
+                kb, res = self.menu.build_pagin_kb(
+                    call,
+                    pagin_id=2
+                )
+
             await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
+        # Пагинация для отметить прочитанными f
         @bot.callback_query_handler(func=self.menu.pag_func(pagin_id=1))
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def pagination(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -62,8 +80,9 @@ class OtherHandlers:
                 kb = await self.menu.build_calendar_kb(self.bot_cm, call, book_id=res, calendar_id=1)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
+        # Пагинация для отметить начатыми s
         @bot.callback_query_handler(func=self.menu.pag_func(pagin_id=2))
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def pagination(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -77,8 +96,9 @@ class OtherHandlers:
                 kb = await self.menu.build_calendar_kb(self.bot_cm, call, book_id=res, calendar_id=2)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
+        # Пагинация для топ книг t
         @bot.callback_query_handler(func=self.menu.pag_func(pagin_id=3))
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def pagination(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -91,8 +111,26 @@ class OtherHandlers:
                 # Обработать полученный объект
                 print(res)
 
+        # Пагинация для управления пользователя u
+        @bot.callback_query_handler(func=self.menu.pag_func(pagin_id=4))
+        @am.access_level_check(bot)
+        async def pagination(call):
+            # Задать язык пользователя
+            self.menu.set_user_lang(call)
+
+            # Сформировать пагинацию и отправить пользователю
+            kb, res = self.menu.process_pagin_kb(pagin_id=4, call=call)
+            if kb:
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+            elif res:
+                # Обработать полученный объект
+                user_id = int(res)
+                kb = self.menu.build_user_card_kb(call, user_id)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+
         @bot.callback_query_handler(func=lambda call: True)
-        @private_access(bot)
+        @am.access_level_check(bot)
         async def callback_inline(call):
             # Задать язык пользователя
             self.menu.set_user_lang(call)
@@ -164,6 +202,7 @@ class OtherHandlers:
                 # Отправить календарь пользователю
                 kb = await self.menu.build_calendar_kb(self.bot_cm, call, book_id, calendar_id=2)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
 
 
 

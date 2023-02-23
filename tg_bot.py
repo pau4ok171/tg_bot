@@ -23,7 +23,7 @@ TG_TOKEN = tg_token
 # Logging
 logging.basicConfig(format='%(asctime)s %(name)s %(levelname)s %(message)s',
                     filemode='a',
-                    filename='tg_bot_logging.log',
+                    filename='files/tg_bot_logging.log',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)

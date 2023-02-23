@@ -1,10 +1,6 @@
-import config
 import inspect
 from commands import CommandManager
 
-ADMINS = config.admins
-REGISTERED = config.registered
-ALLOWED_ID = config.allowed_id
 
 cm = CommandManager()
 
@@ -22,13 +18,13 @@ class LoggingManager:
             f'{inspect.getframeinfo(inspect.currentframe()).function} | '
             f'id: {message.chat.id} | '
             f'username: {message.chat.username} | '
-            f'access_level: {self._get_access_level(message.chat.id)}'
+            f'access_level: {self._get_user_access_level(message.chat.id)}'
         )
 
     def _build_dict(self, message):
         from_user = message.from_user
         user_id = from_user.id
-        access_level = self._get_access_level(user_id)
+        access_level = self._get_user_access_level(user_id)
 
         try:
             chat_id = message.chat.id
@@ -58,16 +54,8 @@ class LoggingManager:
         }
 
         return data
-
     @staticmethod
-    def _get_access_level(user_id):
-        if user_id in REGISTERED:
-            return 'registered'
-
-        elif user_id in ADMINS:
-            return 'admin'
-
-        else:
-            return 'non_registered'
+    def _get_user_access_level(user_id):
+        return cm.get_user_access_level_by_id(user_id)
 
 
