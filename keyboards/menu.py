@@ -78,9 +78,9 @@ class MenuManager(Keyboard):
     # Календарь в зависимости от calendar_id
     async def build_calendar_kb(self, bot_cm, response, book_id, calendar_id) -> schemas.Keyboard:
         # Reset машины состояния
-        await bot_cm.reset_state_data(response, calendar_id)
+        await bot_cm.delete_state(response, calendar_id)
         # Сохранить состояние id книги в память
-        await bot_cm.set_book_id(response, book_id, calendar_id)
+        await bot_cm.set_transaction_id(response, book_id, calendar_id)
 
         # Задать минимальную дату для календаря
         self.calendars.set_min_date(calendar_id, cm.select_started_by_id(book_id))
@@ -105,7 +105,8 @@ class MenuManager(Keyboard):
             return None
 
         # Записываем в машину состояния данные о дате
-        values = await bot_cm.set_date(res, call, calendar_id)
+        await bot_cm.set_date(res, call, calendar_id)
+        values = await bot_cm.get_data(call, state_id=calendar_id)
         if not values:
             return None
 
@@ -227,8 +228,13 @@ class MenuManager(Keyboard):
 
     """------------------------УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ------------------------"""
     # Карточка пользователя
-    def build_user_card_kb(self, response, user_id: int):
-        # Создать text с ИНФО о выбранном пользователе
+    async def build_user_card_kb(self, response, bot_cm, user_id: int, state_id):
+        # Reset машины состояния
+        await bot_cm.delete_state(response, state_id)
+        # Сохранить состояние id книги в память
+        await bot_cm.set_transaction_id(response, user_id, state_id)
+
+        # Создать текст
         titles = [
             'ID',
             self.trans[59], # username
@@ -239,11 +245,56 @@ class MenuManager(Keyboard):
             self.trans[68]  # updated
         ]
         result = cm.select_user_info_by_id(user_id)
+
         text: str = '\n'.join(''f'<b>{k}:</b> {v}' for k, v in dict(zip(titles, result)).items())
 
         # Создать кнопки
         reply_markup = self.bt.build_user_card(response)
 
+        return self._build_keyboard(text, reply_markup)
+
+    async def build_change_user_access_level_kb(self, response, bot_cm, state_id):
+        # Создать текст
+        text = 'Какой уровень доступа дать пользователю'
+
+        user_id = await bot_cm.get_user_id(response, state_id)
+
+        # Создать кнопки на основании access_level пользователя
+        reply_markup = self.bt.build_change_user_access(response, user_id)
+
+        # Создать клавиатуру
+        return self._build_keyboard(text, reply_markup)
+
+    async def build_access_level_confirmation_kb(self, response, bot_cm, access_level, state_id):
+        # Записать level_access в state
+        await bot_cm.set_access_level(response, access_level, state_id)
+
+        # Извлечь из бд user_id и access_level
+        user_id = await bot_cm.get_user_id(response, state_id)
+        username = cm.select_user_info_by_id(user_id)[1]
+
+        # Создать text
+        text = f'<b>{self.trans[59]}:</b> {username}\n' \
+               f'<b>{self.trans[57]}:</b> {access_level}\n' \
+               f'<b>{self.trans[45]}</b>'
+
+        # Создать кнопки
+        reply_markup = self.bt.build_access_level_confirmation(response)
+
+        # Создать клавиатуру
+        return self._build_keyboard(text, reply_markup)
+
+    async def build_access_level_confirm_kb(self, response, bot_cm, state_id):
+        # Отправить данные для обновления в бд
+        values = await bot_cm.get_user_data(response, state_id) # (access_level, user_id)
+        cm.set_access_level(values)
+
+        # Удалить уровень доступа из state
+        await bot_cm.set_access_level(response, access_level=None, state_id=4)
+
+        # Создать новую клавиатуру с подтверждением
+        text = f'{self.trans[46]}'
+        reply_markup = self.bt.build_footer_buttons(menu_id='A2', response=response)
         return self._build_keyboard(text, reply_markup)
 
     """---------------------------ИНФО---------------------------"""

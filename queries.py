@@ -262,11 +262,18 @@ add_user_to_unique_users = """
     VALUES(%s, %s, %s, %s, %s)
 """
 
-select_user_access_level_by_id = """
+select_user_access_level_by_user_id = """
     SELECT level_access
     FROM unique_users
     WHERE
         user_id = %s
+"""
+
+select_user_access_level_by_id = """
+    SELECT level_access
+    FROM unique_users
+    WHERE
+        id = %s
 """
 
 select_user_info_by_id = """
@@ -275,6 +282,16 @@ select_user_info_by_id = """
     WHERE
         id = %s
 """
+
+set_access_level = """
+    UPDATE unique_users
+    SET
+        level_access = %s,
+        updated = CURRENT_TIMESTAMP()
+    WHERE
+        id = %s
+"""
+
 
 queries = {
     'create_db': create_db,
@@ -304,6 +321,7 @@ queries = {
     'select_users_for_pagin_u': select_users_for_pagin_u,
     'select_unique_users_nb': select_unique_users_nb,
     'select_user_info_by_id': select_user_info_by_id,
-
+    'select_user_access_level_by_user_id': select_user_access_level_by_user_id,
+    'set_access_level': set_access_level,
 
 }

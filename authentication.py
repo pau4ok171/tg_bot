@@ -30,7 +30,7 @@ class AuthentificationManager:
                 # Проверить есть ли пользователь в полученном списке
                 if user_id in unique_users:
                     # Если да получить уровень доступа пользователя из бд
-                    user_access_level = cm.get_user_access_level_by_id(user_id)
+                    user_access_level = cm.get_user_access_level_by_user_id(user_id)
 
                     # Проверить уровень доступа пользователя
                     if self.recognize_user(user_access_level, access_level):
@@ -63,10 +63,10 @@ class AuthentificationManager:
 
     @staticmethod
     def get_user_access_level(user_id):
-        return cm.get_user_access_level_by_id(user_id)
+        return cm.get_user_access_level_by_user_id(user_id)
 
     @staticmethod
     def is_admin(message):
         user_id = message.from_user.id
-        user_access_level = cm.get_user_access_level_by_id(user_id)
+        user_access_level = cm.get_user_access_level_by_user_id(user_id)
         return user_access_level in ADMIN

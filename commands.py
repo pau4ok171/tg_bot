@@ -248,6 +248,13 @@ class CommandManager:
         db.crud_data(query, values)
 
     @staticmethod
+    def get_user_access_level_by_user_id(user_id: int):
+        values = (user_id,)
+        query = queries['select_user_access_level_by_user_id']
+        response = db.crud_data(query, values, resp_type='str')
+        return response
+
+    @staticmethod
     def get_user_access_level_by_id(user_id: int):
         values = (user_id,)
         query = queries['select_user_access_level_by_id']
@@ -260,6 +267,11 @@ class CommandManager:
         query = queries['select_user_info_by_id']
         response = db.crud_data(query, values, resp_type='rows')[0]
         return response
+
+    @staticmethod
+    def set_access_level(values):
+        query = queries['set_access_level']
+        db.crud_data(query, values)
 
     @staticmethod
     def get_read(values: tuple):

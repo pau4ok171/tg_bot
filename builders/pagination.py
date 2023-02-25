@@ -13,7 +13,6 @@ PREV_STEP = {'TRANSACTION': 'PAGE', 'PAGE': 'TRANSACTION'}
 cm = CommandManager()
 
 
-
 class TelegramPagination(Keyboard):
     def __init__(self, pagin_id: int=0, return_button: int=None):
         super().__init__()

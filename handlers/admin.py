@@ -69,13 +69,63 @@ class AdminHandlers:
                 kb = self.menu.build_book_management_kb(call)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
-                """---------------------------УПРАВЛЕНИЕ_КНИГАМИ---------------------------"""
+                """------------------------УПРАВЛЕНИЕ_ПОЛЬЗОВАТЕЛМИ------------------------"""
             elif call.data.startswith('admin&user_management_back&'):
+                # Delete state
+                await self.bot_cm.delete_state(call, state_id=4)
+
                 # Пагинация пользователей U
                 kb, res = self.menu.build_pagin_kb(call, pagin_id=4)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
-            elif call.data.startswith('admin&change_user_access&'):
+            elif call.data.startswith('admin&change_user_access_level&'):
                 # Создать две кнопки отличные от текущего уровня доступа
-                kb = self.menu.build_change_user_access_kb(call)
+                kb = await self.menu.build_change_user_access_level_kb(call, self.bot_cm, state_id=4)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_non_registered&'):
+                access_level = 'non_registered'
+                # Создать меню подтверждения
+                kb = await self.menu.build_access_level_confirmation_kb(call, self.bot_cm, access_level, state_id=4)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_registered&'):
+                access_level = 'registered'
+                # Создать меню подтверждения
+                kb = await self.menu.build_access_level_confirmation_kb(call, self.bot_cm, access_level, state_id=4)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_admin&'):
+                access_level = 'admin'
+                # Создать меню подтверждения
+                kb = await self.menu.build_access_level_confirmation_kb(call, self.bot_cm, access_level, state_id=4)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_cancel&'):
+                # Получить id из базы
+                user_id = await self.bot_cm.get_user_id(call, state_id=4)
+
+                kb = await self.menu.build_user_card_kb(call, self.bot_cm, user_id, state_id=4)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_home&'):
+                # Delete state
+                await self.bot_cm.delete_state(call, state_id=4)
+
+                # Вывести стартовую клавиатуру
+                kb = self.menu.build_start_menu_kb(call)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_confirm&'):
+                # Обработать подтверждение A2
+                kb = await self.menu.build_access_level_confirm_kb(call, self.bot_cm, state_id=4)
+                await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
+
+            elif call.data.startswith('admin&set_access_level_decline&'):
+                # Удалить уровень доступа из state
+                await self.bot_cm.set_access_level(call, access_level=None, state_id=4)
+
+                # Вернуться к выбору уровня доступа.
+                # Создать две кнопки отличные от текущего уровня доступа
+                kb = await self.menu.build_change_user_access_level_kb(call, self.bot_cm, state_id=4)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)

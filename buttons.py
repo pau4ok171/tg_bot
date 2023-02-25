@@ -30,8 +30,12 @@ class ButtonsManager:
         self.menu_el_size = 1
 
     def build_footer_buttons(self, menu_id, response):
+        home_buttons = 10026
         if menu_id == 'A1':
             return_button = 10031
+        elif menu_id == 'A2':
+            return_button = 10049
+            home_buttons = 10050
         elif menu_id == 'C1':
             return_button = 10032
         elif menu_id == 'C2':
@@ -50,7 +54,7 @@ class ButtonsManager:
             return_button = None
 
         buttons = {
-            'footer': [return_button, 10026]
+            'footer': [return_button, home_buttons]
         }
 
         reply_markup = self._build_menu(buttons, response, size=self.menu_el_size)
@@ -152,12 +156,34 @@ class ButtonsManager:
     def build_user_card(self, response):
         buttons = {
             'main': [10045],
-            'footer': [10044, 10026],
+            'footer': [10044, 10050],
         }
 
         reply_markup = self._build_menu(buttons, response)
 
         return reply_markup
+
+    def build_change_user_access(self, response, user_id):
+        # Получить уровень доступа пользователя
+        access_level = cm.get_user_access_level_by_id(user_id)
+        levels = {'non_registered': 10046, 'registered': 10047, 'admin': 10048}
+        levels.pop(access_level)
+
+        buttons = {
+            'main': list(levels.values()),
+            'footer': [10049, 10050]
+        }
+
+        reply_markup = self._build_menu(buttons, response, size=1)
+
+        return reply_markup
+
+    def build_access_level_confirmation(self, response):
+        buttons = {
+            'main': [10051, 10052]
+        }
+
+        return self._build_menu(buttons, response)
 
     def build_confirm_adding(self, calendar_id, response):
 

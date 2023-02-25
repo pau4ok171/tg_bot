@@ -109,7 +109,7 @@ class OtherHandlers:
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
             elif res:
                 # Обработать полученный объект
-                print(res)
+                await self.bot_cm.t_test(call, res, state_id=3)
 
         # Пагинация для управления пользователя u
         @bot.callback_query_handler(func=self.menu.pag_func(pagin_id=4))
@@ -125,7 +125,7 @@ class OtherHandlers:
             elif res:
                 # Обработать полученный объект
                 user_id = int(res)
-                kb = self.menu.build_user_card_kb(call, user_id)
+                kb = await self.menu.build_user_card_kb(call, self.bot_cm, user_id, state_id=4)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
 
@@ -138,7 +138,7 @@ class OtherHandlers:
             # К книгам finished
             if call.data.startswith('other&calendar_1_cancel'):
                 # Отчистить сохраненные состояния в памяти
-                await self.bot_cm.reset_state_data(call, state_id=1)
+                await self.bot_cm.delete_state(call, state_id=1)
 
                 kb, res = self.menu.build_calendar_cancel_kb(call, pagin_id=1)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
@@ -146,21 +146,21 @@ class OtherHandlers:
             # К книгам started
             elif call.data.startswith('other&calendar_2_cancel'):
                 # Отчистить сохраненные состояния в памяти
-                await self.bot_cm.reset_state_data(call, state_id=2)
+                await self.bot_cm.delete_state(call, state_id=2)
 
                 kb, res = self.menu.build_calendar_cancel_kb(call, pagin_id=2)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
             elif call.data.startswith('other&calendar_1_home'):
                 # Отчистить сохраненные состояния в памяти
-                await self.bot_cm.reset_state_data(call, state_id=1)
+                await self.bot_cm.delete_state(call, state_id=1)
 
                 kb = self.menu.build_start_menu_kb(call)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
             elif call.data.startswith('other&calendar_2_home'):
                 # Отчистить сохраненные состояния в памяти
-                await self.bot_cm.reset_state_data(call, state_id=2)
+                await self.bot_cm.delete_state(call, state_id=2)
 
                 kb = self.menu.build_start_menu_kb(call)
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
@@ -174,7 +174,7 @@ class OtherHandlers:
                 kb = await self.menu.process_confirm_crud_book(self.bot_cm, call, calendar_id=1)
 
                 # Отчистить сохраненные состояния в памяти
-                await self.bot_cm.reset_state_data(call, state_id=1)
+                await self.bot_cm.delete_state(call, state_id=1)
 
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 
@@ -183,7 +183,7 @@ class OtherHandlers:
                 kb = await self.menu.process_confirm_crud_book(self.bot_cm, call, calendar_id=2)
 
                 # Отчистить сохраненные состояния в памяти
-                await self.bot_cm.reset_state_data(call, state_id=2)
+                await self.bot_cm.delete_state(call, state_id=2)
 
                 await self.bot_cm.edit_message(call, kb.text, kb.reply_markup)
 

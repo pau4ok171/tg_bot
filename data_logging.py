@@ -56,6 +56,6 @@ class LoggingManager:
         return data
     @staticmethod
     def _get_user_access_level(user_id):
-        return cm.get_user_access_level_by_id(user_id)
+        return cm.get_user_access_level_by_user_id(user_id)
 
 
